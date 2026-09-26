@@ -33,6 +33,22 @@ TOPICS = {
     "音声 / Speech": r"\b(speech|audio|asr|tts)\b",
 }
 
+# 2026年に目立ち始めた新興語 (タイトル比率・HF 要旨比率の両方で追跡)
+EMERGING = {
+    "harness (エージェント実行基盤)": r"harness",
+    "self-improvement / self-evolving": r"self-(improv|evolv)|recursive self",
+    "memory": r"\bmemory\b",
+    "skills": r"\bskills?\b",
+    "world model": r"world(-action)? models?",
+    "on-policy / self-distillation": r"on-policy\b.*distill|self-distill",
+    "GRPO / RLVR": r"grpo|rlvr|verifiable reward",
+    "tool use": r"\btool",
+    "GUI / computer use": r"\bgui\b|computer[- ]use",
+    "LLM-as-a-judge": r"judge",
+    "hallucination": r"hallucinat",
+    "diffusion LM": r"diffusion (large )?language model|dllm",
+}
+
 def main():
     rt = json.load(open("data/recent_titles.json"))["arxiv"]
     months = sorted({k.split("/")[1] for k in rt})
@@ -49,6 +65,9 @@ def main():
             rx = re.compile(pat)
             share = sum(1 for t in low if rx.search(t)) / max(1, len(low))
             res["topic_share"].setdefault(name, {})[m] = round(100 * share, 2)
+        for name, pat in EMERGING.items():
+            share = sum(1 for t in low if re.search(pat, t)) / max(1, len(low))
+            res.setdefault("emerging_share", {}).setdefault(name, {})[m] = round(100 * share, 2)
     try:
         hf = json.load(open("data/hf_daily_papers_2026-08_09.json"))
         seen, uniq = set(), []
@@ -64,6 +83,11 @@ def main():
                 kw[k] += 1
         res["hf_keywords"] = kw.most_common(60)
         low = [((p["title"] or "") + " " + (p["summary"] or "")).lower() for p in uniq]
+        top = sorted(uniq, key=lambda p: -(p["upvotes"] or 0))[:200]
+        ltop = [((p["title"] or "") + " " + (p["summary"] or "")).lower() for p in top]
+        res["hf_emerging_share"] = {n: {"all": round(100 * sum(1 for t in low if re.search(pat, t)) / len(low), 1),
+                                        "top200": round(100 * sum(1 for t in ltop if re.search(pat, t)) / len(ltop), 1)}
+                                    for n, pat in EMERGING.items()}
         res["hf_topic_share"] = {n: round(100 * sum(1 for t in low if re.search(pat, t)) / max(1, len(low)), 1)
                                  for n, pat in TOPICS.items()}
     except FileNotFoundError:

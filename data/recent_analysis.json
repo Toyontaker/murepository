@@ -1,0 +1,790 @@
+{
+ "monthly_totals": {
+  "cs.LG/2024-09": 2959,
+  "cs.AI/2024-09": 2670,
+  "cs.CL/2024-09": 1532,
+  "cs.CV/2024-09": 2576,
+  "cs.LG/2025-09": 4217,
+  "cs.AI/2025-09": 4271,
+  "cs.CL/2025-09": 2214,
+  "cs.CV/2025-09": 3061,
+  "cs.LG/2026-09": 3791,
+  "cs.AI/2026-09": 4047,
+  "cs.CL/2026-09": 2207,
+  "cs.CV/2026-09": 2527
+ },
+ "topic_share": {
+  "LLM / 言語モデル": {
+   "2024-09": 14.38,
+   "2025-09": 17.62,
+   "2026-09": 15.63
+  },
+  "エージェント / Agentic": {
+   "2024-09": 2.2,
+   "2025-09": 5.81,
+   "2026-09": 10.86
+  },
+  "推論 / Reasoning": {
+   "2024-09": 1.56,
+   "2025-09": 5.0,
+   "2026-09": 4.07
+  },
+  "強化学習 (RL / RLVR / GRPO)": {
+   "2024-09": 2.69,
+   "2025-09": 4.22,
+   "2026-09": 3.07
+  },
+  "拡散 / フローマッチング": {
+   "2024-09": 4.31,
+   "2025-09": 4.65,
+   "2026-09": 3.05
+  },
+  "マルチモーダル / VLM / MLLM": {
+   "2024-09": 4.57,
+   "2025-09": 6.88,
+   "2026-09": 6.33
+  },
+  "動画生成・理解": {
+   "2024-09": 2.7,
+   "2025-09": 2.66,
+   "2026-09": 2.88
+  },
+  "3D / 4D / Gaussian Splatting": {
+   "2024-09": 3.6,
+   "2025-09": 3.19,
+   "2026-09": 3.0
+  },
+  "世界モデル": {
+   "2024-09": 0.15,
+   "2025-09": 0.26,
+   "2026-09": 1.01
+  },
+  "ロボット / Embodied / VLA": {
+   "2024-09": 2.06,
+   "2025-09": 2.28,
+   "2026-09": 2.84
+  },
+  "RAG / 検索": {
+   "2024-09": 1.84,
+   "2025-09": 2.26,
+   "2026-09": 2.46
+  },
+  "安全性 / アラインメント": {
+   "2024-09": 2.17,
+   "2025-09": 2.97,
+   "2026-09": 3.27
+  },
+  "解釈性 / Mechanistic": {
+   "2024-09": 1.88,
+   "2025-09": 2.44,
+   "2026-09": 1.98
+  },
+  "ベンチマーク / 評価": {
+   "2024-09": 5.49,
+   "2025-09": 7.19,
+   "2026-09": 9.19
+  },
+  "効率化 (量子化・蒸留・推論高速化)": {
+   "2024-09": 6.14,
+   "2025-09": 6.62,
+   "2026-09": 6.77
+  },
+  "Transformer / Attention": {
+   "2024-09": 4.45,
+   "2025-09": 4.42,
+   "2026-09": 3.59
+  },
+  "状態空間 / 線形注意 (Mamba等)": {
+   "2024-09": 0.99,
+   "2025-09": 0.6,
+   "2026-09": 0.53
+  },
+  "Mixture of Experts": {
+   "2024-09": 0.29,
+   "2025-09": 0.56,
+   "2026-09": 0.65
+  },
+  "グラフ (GNN)": {
+   "2024-09": 0.88,
+   "2025-09": 0.78,
+   "2026-09": 0.52
+  },
+  "連合学習 / プライバシー": {
+   "2024-09": 2.76,
+   "2025-09": 2.12,
+   "2026-09": 1.88
+  },
+  "コード生成 / SWE": {
+   "2024-09": 0.64,
+   "2025-09": 0.62,
+   "2026-09": 1.01
+  },
+  "数学 / 定理証明": {
+   "2024-09": 0.55,
+   "2025-09": 0.69,
+   "2026-09": 0.69
+  },
+  "科学のためのAI (AI4Science)": {
+   "2024-09": 2.41,
+   "2025-09": 2.3,
+   "2026-09": 2.23
+  },
+  "医療 / ヘルスケア": {
+   "2024-09": 3.21,
+   "2025-09": 3.29,
+   "2026-09": 2.77
+  },
+  "テスト時計算 / CoT": {
+   "2024-09": 0.51,
+   "2025-09": 1.49,
+   "2026-09": 1.03
+  },
+  "合成データ": {
+   "2024-09": 0.34,
+   "2025-09": 0.33,
+   "2026-09": 0.23
+  },
+  "トークナイズ / 長文脈": {
+   "2024-09": 0.5,
+   "2025-09": 0.5,
+   "2026-09": 0.62
+  },
+  "音声 / Speech": {
+   "2024-09": 3.65,
+   "2025-09": 2.92,
+   "2026-09": 2.77
+  }
+ },
+ "dedup_n": {
+  "2024-09": 6852,
+  "2025-09": 9787,
+  "2026-09": 9487
+ },
+ "emerging_share": {
+  "harness (エージェント実行基盤)": {
+   "2024-09": 0.2,
+   "2025-09": 0.11,
+   "2026-09": 0.81
+  },
+  "self-improvement / self-evolving": {
+   "2024-09": 0.07,
+   "2025-09": 0.31,
+   "2026-09": 0.54
+  },
+  "memory": {
+   "2024-09": 0.82,
+   "2025-09": 0.89,
+   "2026-09": 2.1
+  },
+  "skills": {
+   "2024-09": 0.16,
+   "2025-09": 0.21,
+   "2026-09": 0.72
+  },
+  "world model": {
+   "2024-09": 0.15,
+   "2025-09": 0.35,
+   "2026-09": 1.22
+  },
+  "on-policy / self-distillation": {
+   "2024-09": 0.07,
+   "2025-09": 0.06,
+   "2026-09": 0.6
+  },
+  "GRPO / RLVR": {
+   "2024-09": 0.0,
+   "2025-09": 0.31,
+   "2026-09": 0.37
+  },
+  "tool use": {
+   "2024-09": 0.47,
+   "2025-09": 0.73,
+   "2026-09": 1.08
+  },
+  "GUI / computer use": {
+   "2024-09": 0.04,
+   "2025-09": 0.36,
+   "2026-09": 0.37
+  },
+  "LLM-as-a-judge": {
+   "2024-09": 0.13,
+   "2025-09": 0.24,
+   "2026-09": 0.46
+  },
+  "hallucination": {
+   "2024-09": 0.45,
+   "2025-09": 0.68,
+   "2026-09": 0.57
+  },
+  "diffusion LM": {
+   "2024-09": 0.0,
+   "2025-09": 0.28,
+   "2026-09": 0.28
+  }
+ },
+ "hf_n": 1196,
+ "hf_top": [
+  {
+   "id": "2608.09888",
+   "title": "BDH-CQ: In-Context Learning with Recurrent Latent Reasoning",
+   "upvotes": 790,
+   "date": "2026-08-11"
+  },
+  {
+   "id": "2609.17488",
+   "title": "LimiX-2: A Contextual Mechanism Network Towards General Structured-Data Intelligence",
+   "upvotes": 775,
+   "date": "2026-09-17"
+  },
+  {
+   "id": "2609.11638",
+   "title": "Vidu S2: Real-Time Interactive, Editable, and Spatial Video Generation",
+   "upvotes": 699,
+   "date": "2026-09-15"
+  },
+  {
+   "id": "2608.12564",
+   "title": "Scaling Automatic Research Agents via World Models",
+   "upvotes": 478,
+   "date": "2026-09-10"
+  },
+  {
+   "id": "2608.15089",
+   "title": "StateM: Reaching 95.3% Raw Accuracy, or a \\$15 Frontier Run, on Terminal-Bench 2.1 via Harness Scaling",
+   "upvotes": 448,
+   "date": "2026-08-18"
+  },
+  {
+   "id": "2609.15818",
+   "title": "Atria Dawn: The Dawn of Agentic Superintelligence",
+   "upvotes": 426,
+   "date": "2026-09-15"
+  },
+  {
+   "id": "2609.01591",
+   "title": "StudentSim: Training LLM-based Student Simulators",
+   "upvotes": 394,
+   "date": "2026-09-02"
+  },
+  {
+   "id": "2609.02749",
+   "title": "Repo-To-Skill: Distilling GitHub Repositories Into AI4AI Skills",
+   "upvotes": 391,
+   "date": "2026-09-03"
+  },
+  {
+   "id": "2609.06986",
+   "title": "Continual Learning Mechanisms Compose for Long-Horizon Memorization",
+   "upvotes": 373,
+   "date": "2026-09-16"
+  },
+  {
+   "id": "2609.10715",
+   "title": "NCP-ArchPreview Technical Report: Moving towards Latent Space Language Models through Next Concept Prediction",
+   "upvotes": 328,
+   "date": "2026-09-11"
+  },
+  {
+   "id": "2609.04199",
+   "title": "Compile by Training: Turning Natural-Language Specifications into Local Neural Functions",
+   "upvotes": 326,
+   "date": "2026-09-04"
+  },
+  {
+   "id": "2609.00111",
+   "title": "Qwen-Drive-1.0: An Initial Step towards a Vision-Language Foundation Model for Autonomous Driving",
+   "upvotes": 313,
+   "date": "2026-09-02"
+  },
+  {
+   "id": "2608.14391",
+   "title": "Can We Defend Against AI-Generated Video Attacks on Real-World Crisis Events? A Systematic Evaluation of Detectors, Generators and Social Dissemination",
+   "upvotes": 285,
+   "date": "2026-08-17"
+  },
+  {
+   "id": "2609.11929",
+   "title": "SenseNova-U1.5: Towards Native Unified Visual Intelligence",
+   "upvotes": 273,
+   "date": "2026-09-11"
+  },
+  {
+   "id": "2608.00677",
+   "title": "OpenART: Scaling Agent Red Teaming via Open-Ended Environment Evolution",
+   "upvotes": 265,
+   "date": "2026-08-13"
+  },
+  {
+   "id": "2609.13356",
+   "title": "ZGCM-1: A Fully Open and Extremely Efficient Foundation Model for Math and Agentic Search",
+   "upvotes": 260,
+   "date": "2026-09-15"
+  },
+  {
+   "id": "2609.14858",
+   "title": "Dream-RSI: Recursive Self-Improvement through Evolving Worlds",
+   "upvotes": 245,
+   "date": "2026-09-15"
+  },
+  {
+   "id": "2609.04148",
+   "title": "Terminal-Universe: Turning Agent Trajectories into Scalable Terminal Environments",
+   "upvotes": 244,
+   "date": "2026-09-04"
+  },
+  {
+   "id": "2609.23088",
+   "title": "OmniEdu: Open Foundation Models for Learning and Teaching",
+   "upvotes": 231,
+   "date": "2026-09-22"
+  },
+  {
+   "id": "2609.01437",
+   "title": "HarnessDev: Can LLMs Create and Evolve Their Own Agent Harness?",
+   "upvotes": 219,
+   "date": "2026-09-03"
+  },
+  {
+   "id": "2609.13814",
+   "title": "Realtime-Venus: A full-duplex interaction system with asynchronous delegation",
+   "upvotes": 213,
+   "date": "2026-09-22"
+  },
+  {
+   "id": "2609.14857",
+   "title": "ModularRSI: Modular and Generalizable Recursive Harness Self-Improvement",
+   "upvotes": 212,
+   "date": "2026-09-16"
+  },
+  {
+   "id": "2608.23283",
+   "title": "Apodex 1.1: Scaling Agentic Intelligence for Complex Work",
+   "upvotes": 211,
+   "date": "2026-08-25"
+  },
+  {
+   "id": "2609.24972",
+   "title": "RRSI: Regularized Recursive Self-Improvement of Agent Harnesses",
+   "upvotes": 205,
+   "date": "2026-09-22"
+  },
+  {
+   "id": "2608.26105",
+   "title": "VBVR-Pro: A Scalable and Verifiable Suite for Native Visual Reasoning",
+   "upvotes": 189,
+   "date": "2026-08-27"
+  },
+  {
+   "id": "2609.28654",
+   "title": "Training Object Permanence in World Models",
+   "upvotes": 189,
+   "date": "2026-09-25"
+  },
+  {
+   "id": "2608.10744",
+   "title": "Beyond Pixels: From Video Priors to 4D Worlds",
+   "upvotes": 186,
+   "date": "2026-08-12"
+  },
+  {
+   "id": "2609.03796",
+   "title": "LLaDA-Image: Building Strong Image Generators with Fully Open Training Recipes",
+   "upvotes": 184,
+   "date": "2026-09-04"
+  },
+  {
+   "id": "2609.19969",
+   "title": "DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression",
+   "upvotes": 180,
+   "date": "2026-09-18"
+  },
+  {
+   "id": "2608.06296",
+   "title": "On-Policy Self-Distillation without Any Supervision",
+   "upvotes": 179,
+   "date": "2026-08-11"
+  },
+  {
+   "id": "2608.09819",
+   "title": "Macaron-V1: Towards Open Continual Learning with Self-Improvement and Mixture-of-LoRA",
+   "upvotes": 177,
+   "date": "2026-08-11"
+  },
+  {
+   "id": "2608.19880",
+   "title": "EnvHarness: Awakening Static Worlds for Agent Learning",
+   "upvotes": 174,
+   "date": "2026-08-21"
+  },
+  {
+   "id": "2608.19583",
+   "title": "VGI-Bench: Probing Visual Intelligence in Video Generation Models",
+   "upvotes": 173,
+   "date": "2026-08-27"
+  },
+  {
+   "id": "2609.00365",
+   "title": "Dr. Claw: An AI Scientist Workspace for Vibe Research",
+   "upvotes": 173,
+   "date": "2026-09-07"
+  },
+  {
+   "id": "2609.08183",
+   "title": "NeoHorse-1: Towards Recursive Self-Improvement via Agentic Post-Training with Routing Harness",
+   "upvotes": 173,
+   "date": "2026-09-09"
+  },
+  {
+   "id": "2609.14973",
+   "title": "PhysBrain 1.5: From Vision-Language Models to Physical Foundation Models",
+   "upvotes": 173,
+   "date": "2026-09-15"
+  },
+  {
+   "id": "2609.11115",
+   "title": "Benchmark Radar: A Living Database and Search Engine for AI Benchmarks and Evaluation",
+   "upvotes": 171,
+   "date": "2026-09-14"
+  },
+  {
+   "id": "2608.31111",
+   "title": "Aspire: Can Models Self-Evolve from Vague Goals?",
+   "upvotes": 168,
+   "date": "2026-09-03"
+  },
+  {
+   "id": "2608.10915",
+   "title": "ComBodied Agents: a New Paradigm of Human-Centric Agentic AI",
+   "upvotes": 165,
+   "date": "2026-08-12"
+  },
+  {
+   "id": "2609.08936",
+   "title": "AuK Technical Report: An Open-Source Foundational Model for Speech Generation and Editing",
+   "upvotes": 164,
+   "date": "2026-09-09"
+  }
+ ],
+ "hf_keywords": [
+  [
+   "reinforcement learning",
+   62
+  ],
+  [
+   "supervised fine-tuning",
+   42
+  ],
+  [
+   "grpo",
+   39
+  ],
+  [
+   "multimodal large language models",
+   30
+  ],
+  [
+   "large language models",
+   30
+  ],
+  [
+   "on-policy distillation",
+   27
+  ],
+  [
+   "vision-language models",
+   26
+  ],
+  [
+   "llm agents",
+   24
+  ],
+  [
+   "vision-language model",
+   22
+  ],
+  [
+   "vision-language-action models",
+   17
+  ],
+  [
+   "mixture-of-experts",
+   15
+  ],
+  [
+   "chain-of-thought",
+   13
+  ],
+  [
+   "on-policy self-distillation",
+   12
+  ],
+  [
+   "rlvr",
+   12
+  ],
+  [
+   "llms",
+   12
+  ],
+  [
+   "reinforcement learning with verifiable rewards",
+   10
+  ],
+  [
+   "flow matching",
+   10
+  ],
+  [
+   "world models",
+   10
+  ],
+  [
+   "kv cache",
+   10
+  ],
+  [
+   "lora",
+   10
+  ],
+  [
+   "fine-tuning",
+   10
+  ],
+  [
+   "in-context learning",
+   10
+  ],
+  [
+   "large language model agents",
+   9
+  ],
+  [
+   "cross-attention",
+   9
+  ],
+  [
+   "recursive self-improvement",
+   8
+  ],
+  [
+   "retrieval-augmented generation",
+   8
+  ],
+  [
+   "spatial reasoning",
+   8
+  ],
+  [
+   "self-distillation",
+   7
+  ],
+  [
+   "flow-matching",
+   7
+  ],
+  [
+   "token-level supervision",
+   7
+  ],
+  [
+   "autonomous agents",
+   7
+  ],
+  [
+   "coding agents",
+   6
+  ],
+  [
+   "llm",
+   6
+  ],
+  [
+   "vision-language-action",
+   6
+  ],
+  [
+   "speculative decoding",
+   6
+  ],
+  [
+   "swe-bench verified",
+   6
+  ],
+  [
+   "test-time scaling",
+   6
+  ],
+  [
+   "post-training",
+   6
+  ],
+  [
+   "instruction following",
+   6
+  ],
+  [
+   "mllms",
+   6
+  ],
+  [
+   "large language model",
+   6
+  ],
+  [
+   "moe",
+   6
+  ],
+  [
+   "dit",
+   6
+  ],
+  [
+   "agentic systems",
+   6
+  ],
+  [
+   "policy optimization",
+   6
+  ],
+  [
+   "world model",
+   6
+  ],
+  [
+   "harness evolution",
+   6
+  ],
+  [
+   "cross-modal alignment",
+   6
+  ],
+  [
+   "off-policy",
+   5
+  ],
+  [
+   "catastrophic forgetting",
+   5
+  ],
+  [
+   "self-evolving agents",
+   5
+  ],
+  [
+   "classifier-free guidance",
+   5
+  ],
+  [
+   "hidden states",
+   5
+  ],
+  [
+   "world action models",
+   5
+  ],
+  [
+   "multimodal agents",
+   5
+  ],
+  [
+   "group relative policy optimization",
+   5
+  ],
+  [
+   "attack success rate",
+   5
+  ],
+  [
+   "video world models",
+   5
+  ],
+  [
+   "verifiable rewards",
+   5
+  ],
+  [
+   "world-action models",
+   5
+  ]
+ ],
+ "hf_emerging_share": {
+  "harness (エージェント実行基盤)": {
+   "all": 8.2,
+   "top200": 16.0
+  },
+  "self-improvement / self-evolving": {
+   "all": 5.3,
+   "top200": 11.0
+  },
+  "memory": {
+   "all": 15.1,
+   "top200": 14.5
+  },
+  "skills": {
+   "all": 6.8,
+   "top200": 9.5
+  },
+  "world model": {
+   "all": 6.7,
+   "top200": 10.5
+  },
+  "on-policy / self-distillation": {
+   "all": 6.1,
+   "top200": 9.0
+  },
+  "GRPO / RLVR": {
+   "all": 6.1,
+   "top200": 8.5
+  },
+  "tool use": {
+   "all": 14.0,
+   "top200": 24.0
+  },
+  "GUI / computer use": {
+   "all": 1.7,
+   "top200": 2.5
+  },
+  "LLM-as-a-judge": {
+   "all": 5.7,
+   "top200": 4.5
+  },
+  "hallucination": {
+   "all": 2.3,
+   "top200": 1.0
+  },
+  "diffusion LM": {
+   "all": 0.8,
+   "top200": 1.5
+  }
+ },
+ "hf_topic_share": {
+  "LLM / 言語モデル": 45.1,
+  "エージェント / Agentic": 35.8,
+  "推論 / Reasoning": 25.3,
+  "強化学習 (RL / RLVR / GRPO)": 16.8,
+  "拡散 / フローマッチング": 9.3,
+  "マルチモーダル / VLM / MLLM": 22.0,
+  "動画生成・理解": 17.4,
+  "3D / 4D / Gaussian Splatting": 7.7,
+  "世界モデル": 5.4,
+  "ロボット / Embodied / VLA": 11.6,
+  "RAG / 検索": 9.1,
+  "安全性 / アラインメント": 14.6,
+  "解釈性 / Mechanistic": 4.3,
+  "ベンチマーク / 評価": 67.6,
+  "効率化 (量子化・蒸留・推論高速化)": 24.7,
+  "Transformer / Attention": 15.4,
+  "状態空間 / 線形注意 (Mamba等)": 1.3,
+  "Mixture of Experts": 2.7,
+  "グラフ (GNN)": 0.2,
+  "連合学習 / プライバシー": 0.9,
+  "コード生成 / SWE": 9.5,
+  "数学 / 定理証明": 7.1,
+  "科学のためのAI (AI4Science)": 6.2,
+  "医療 / ヘルスケア": 2.7,
+  "テスト時計算 / CoT": 8.0,
+  "合成データ": 0.6,
+  "トークナイズ / 長文脈": 4.6,
+  "音声 / Speech": 7.0
+ }
+}
