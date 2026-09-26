@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI研究20年の地殻変動</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@700;900&display=swap">
+<style>
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --ink:#12151c; --ink-2:#464c59; --muted:#737a88;
+  --rule:#dde0e6; --grid:#e8eaee; --accent:#2a78d6; --accent-soft:#e3eefb;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
+  --q1:#b7d3f6; --q2:#5598e7; --q3:#184f95;
+  --up:#0a7d3c; --down:#b3402f;
+  --f-display:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --f-body:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0e1015; --surface:#161920; --ink:#eef0f4; --ink-2:#c4c8d2; --muted:#9097a5;
+    --rule:#2a2e38; --grid:#232731; --accent:#5b9ded; --accent-soft:#1a2a40;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#1f9a1f; --s7:#9085e9; --s8:#e66767;
+    --q1:#1c5cab; --q2:#5598e7; --q3:#b7d3f6;
+    --up:#4cc27f; --down:#ef8a78;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0e1015; --surface:#161920; --ink:#eef0f4; --ink-2:#c4c8d2; --muted:#9097a5;
+  --rule:#2a2e38; --grid:#232731; --accent:#5b9ded; --accent-soft:#1a2a40;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#1f9a1f; --s7:#9085e9; --s8:#e66767;
+  --q1:#1c5cab; --q2:#5598e7; --q3:#b7d3f6;
+  --up:#4cc27f; --down:#ef8a78;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.75;margin:0;padding-inline:16px;padding-block:0 64px}
+.wrap{max-width:1080px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.3;margin:0}
+h1{font-size:clamp(28px,5vw,44px);font-weight:900;letter-spacing:.01em}
+h2{font-size:clamp(21px,3vw,26px);font-weight:900}
+h3{font-size:17px;font-weight:700}
+p{margin:0;max-width:68ch}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+header.hero{padding-block:48px 28px;display:grid;gap:16px;border-bottom:1px solid var(--rule)}
+.hero .lead{font-size:16px;color:var(--ink-2)}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:var(--f-mono);font-size:12px;padding:3px 10px;border:1px solid var(--rule);border-radius:999px;color:var(--ink-2);background:var(--surface)}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin-block:28px}
+.kpi{background:var(--surface);padding:18px 18px 16px;display:grid;gap:4px;align-content:start}
+.kpi .v{font-family:var(--f-mono);font-size:30px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:15px;color:var(--muted);font-weight:400}
+.kpi .l{font-size:13px;color:var(--ink-2);line-height:1.55}
+@media (max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}}
+
+nav.toc{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;padding-block:4px 8px}
+nav.toc a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid transparent}
+nav.toc a:hover{border-color:var(--accent);color:var(--ink)}
+
+section{padding-block:44px 8px;display:grid;gap:18px}
+section > .head{display:grid;gap:6px}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:18px}
+.chart-box{position:relative;height:380px}
+.chart-box.tall{height:560px}
+.chart-box.small{height:250px}
+.src{font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px;max-width:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}}
+.points{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.points li{padding-left:18px;position:relative;max-width:78ch}
+.points li::before{content:"";position:absolute;left:2px;top:.72em;width:7px;height:7px;border-radius:2px;background:var(--accent)}
+.points b{font-weight:700}
+
+/* 時代タイムライン */
+.eras{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+@media (max-width:980px){.eras{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:560px){.eras{grid-template-columns:1fr}}
+.era{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:14px;display:grid;gap:8px;align-content:start}
+.era .yr{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.era h3{font-size:16px}
+.era .tag{display:inline-block;font-size:11.5px;line-height:1.5;padding:1px 7px;border-radius:5px;background:var(--accent-soft);color:var(--ink-2);margin:0 4px 4px 0}
+.era .q{font-size:12.5px;color:var(--ink-2);border-top:1px dashed var(--rule);padding-top:8px}
+.era.now{border-color:var(--accent)}
+.era.now .yr{color:var(--accent)}
+
+/* 表 */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--rule);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--grid);text-align:left;vertical-align:top}
+th{font-weight:500;color:var(--muted);font-size:12px;white-space:nowrap;background:var(--surface);position:sticky;top:0}
+td.n{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.bar{display:inline-block;height:8px;border-radius:0 4px 4px 0;background:var(--s1);vertical-align:middle;margin-right:6px}
+.pill{font-family:var(--f-mono);font-size:11.5px;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.pill.rise{background:color-mix(in srgb,var(--up) 14%,transparent);color:var(--up)}
+.pill.peak{background:color-mix(in srgb,var(--muted) 16%,transparent);color:var(--ink-2)}
+.ctrl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.ctrl button{font:inherit;font-size:12.5px;padding:4px 11px;border-radius:999px;border:1px solid var(--rule);background:var(--surface);color:var(--ink-2);cursor:pointer}
+.ctrl button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+
+/* 方向性 */
+.dirs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:900px){.dirs{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.dirs{grid-template-columns:1fr}}
+.dir{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:16px;display:grid;gap:8px;align-content:start}
+.dir .k{font-family:var(--f-mono);font-size:12px;color:var(--accent);font-weight:600}
+.dir .ev{font-size:12.5px;color:var(--ink-2);display:grid;gap:3px}
+.dir .ev span{font-family:var(--f-mono);font-size:12px}
+.dir .qq{font-size:13px;border-top:1px dashed var(--rule);padding-top:8px}
+blockquote{margin:0;padding:18px 20px;border-left:3px solid var(--accent);background:var(--surface);border-radius:0 10px 10px 0;font-family:var(--f-display);font-weight:700;font-size:17px;line-height:1.7}
+
+.papers{display:grid;grid-template-columns:repeat(2,1fr);gap:0 24px;margin:0;padding:0;list-style:none}
+@media (max-width:760px){.papers{grid-template-columns:1fr}}
+.papers li{display:grid;grid-template-columns:52px 1fr;gap:10px;padding-block:7px;border-bottom:1px solid var(--grid);font-size:13.5px;line-height:1.5}
+.papers .up{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:right;padding-top:1px}
+.papers a{color:var(--ink);text-decoration:none}
+.papers a:hover{color:var(--accent);text-decoration:underline}
+.papers .id{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);display:block}
+details summary{cursor:pointer;font-size:13px;color:var(--ink-2)}
+footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--muted);display:grid;gap:6px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">arXiv cs.* / stat.ML ・ 2006 – 2026.09</div>
+  <h1>AI研究20年の地殻変動</h1>
+  <p class="lead">人工知能・機械学習の論文投稿データから、この20年の潮流と、2026年9月時点のアカデミアの技術動向を読み解くレポートです。</p>
+  <div class="meta">
+    <span class="chip">作成 2026-09-26</span>
+    <span class="chip">arXiv 2006〜2026-09-25</span>
+    <span class="chip">HF Daily Papers 1,196本</span>
+    <span class="chip">25テーマ × 21年</span>
+  </div>
+</header>
+
+<div class="kpis">
+  <div class="kpi"><span class="eyebrow">論文数の伸び</span><span class="v">×75</span><span class="l">arXiv cs の年間件数。2,071件 (2006) → 152,238件 (2025)。2026年は年換算 約19.5万件。</span></div>
+  <div class="kpi"><span class="eyebrow">LLM の占有率</span><span class="v">28.4<small>%</small></span><span class="l">2026年の cs 論文のうち、要旨に LLM を含む割合。2022年は 0.4%。</span></div>
+  <div class="kpi"><span class="eyebrow">エージェント</span><span class="v">×2.0<small> /年</small></span><span class="l">要旨に含む割合が 8.2% → 16.8%。9月新着タイトルでは2年で 2.2% → 10.9%。</span></div>
+  <div class="kpi"><span class="eyebrow">主戦場の交代</span><span class="v">cs.AI<small> &gt; cs.LG</small></span><span class="l">2026年、cs.AI の件数が2013年以来はじめて cs.LG を上回る見込み。</span></div>
+</div>
+
+<nav class="toc" aria-label="目次">
+  <a href="#eras">20年の6つの時代</a><a href="#growth">分野別の成長</a><a href="#themes">テーマの盛衰</a><a href="#latest">最新投稿の構成</a><a href="#emerging">2026年の新興語</a><a href="#papers">注目論文</a><a href="#directions">技術動向の方向性</a><a href="#notes">データと注意点</a>
+</nav>
+
+<section id="summary">
+  <div class="head"><span class="eyebrow">Key findings</span><h2>要点</h2></div>
+  <ul class="points">
+    <li><b>研究の主語が「学習法」から「AIに何をさせるか」へ移った。</b>2026年は cs.AI (年換算 約61,000件) が cs.LG (約55,000件) を逆転する見込み。関心は学習アルゴリズムから、推論・計画・エージェントといったシステムの設計へ移っています。</li>
+    <li><b>主役の手法はおよそ5年ごとに交代してきた。</b>SVM (2007年ピーク) → CNN・RNN (2018年) → GAN (2019年) → 「深層学習」という言葉自体 (2021年) → 自己教師あり学習・GNN・連合学習 (2023年) → 拡散モデル (2025年)。ピークを過ぎた技術は消えるのではなく、当たり前の部品になって名前が書かれなくなります。</li>
+    <li><b>2026年の三大テーマは LLM・推論・エージェント。</b>要旨に含む割合は LLM 28.4%、推論 17.2%、エージェント 16.8%。</li>
+    <li><b>最前線の研究対象は「モデル単体」から「モデル+ハーネス+環境」へ。</b>2026年8〜9月の注目論文では、ハーネス、記憶、スキル、自己改善、on-policy 蒸留、世界モデルといった語が急増しています。いずれも1年前はほとんど見られませんでした。</li>
+  </ul>
+</section>
+
+<section id="eras">
+  <div class="head"><span class="eyebrow">Timeline</span><h2>20年の6つの時代</h2><p>各時代の主役の手法、象徴的な出来事、研究の中心にあった問い。</p></div>
+  <div class="eras" id="eraGrid"></div>
+  <p class="src">時代区分と出来事は一般的な研究史の整理で、本分析のデータから導いたものではありません。</p>
+</section>
+
+<section id="growth">
+  <div class="head"><span class="eyebrow">Volume</span><h2>分野別の年間掲載件数</h2><p>2012年 (深層学習革命) と 2018年 (Transformer と深層学習の一般化) に屈曲点があり、2023年以降は cs.AI と cs.CL が伸びを牽引しています。分野名をクリックすると表示を切り替えられます。</p></div>
+  <div class="card">
+    <div class="ctrl" id="growthCtrl" role="group" aria-label="表示する分野"></div>
+    <div class="chart-box"><canvas id="growthChart" aria-label="arXiv 分野別年間掲載件数の折れ線グラフ" role="img"></canvas></div>
+    <p class="src">出典: arXiv 一覧ページ (arxiv.org/list/&lt;分類&gt;/&lt;年&gt;) の件数、クロスリストを含む。2026年は9月25日までの実績を年換算した推計 (点線)。stat.ML の2021年の急減は、arXiv のクロスリスト運用の変更によるものです。</p>
+  </div>
+  <ul class="points">
+    <li><b>伸び率が最も高いのはロボティクスとマルチエージェント。</b>2026年の年換算で cs.RO は +40%、cs.MA は +59%。基盤モデルが身体とマルチエージェントの世界に広がりつつあります。</li>
+    <li>cs.AI は 2022年の 14,784件から 2025年の 45,099件へ、3年で約3倍になりました。</li>
+  </ul>
+</section>
+
+<section id="themes">
+  <div class="head"><span class="eyebrow">Rise &amp; fall</span><h2>研究テーマの盛衰</h2><p>要旨にキーワードを含む論文が、arXiv cs の全論文に占める割合。25テーマを時代ごとに4つのグループに分けています。</p></div>
+  <div class="grid2" id="themePanels"></div>
+  <p class="src">出典: arXiv 詳細検索 (abstract、cs+stat、クロスリスト含む、投稿年指定) の件数 ÷ arXiv cs の年間掲載件数。2026年は9月25日まで。「推論」「エージェント」「Transformer」は LLM 以前から別の意味 (論理推論、マルチエージェントシステム、変圧器) でも使われるため、水準よりも2024年以降の傾きに注目してください。</p>
+  <ul class="points">
+    <li><b>LLM は4年で 0.4% → 28.4%。</b>20年で最大かつ最速のテーマ転換で、CNN のピーク (7.9%) の3.6倍の規模です。</li>
+    <li><b>「深層学習」という言葉は2021年がピーク。</b>廃れたのではなく、前提になりすぎて書かれなくなりました。CNN、RNN、GAN も同じ道をたどっています。</li>
+    <li><b>強化学習が再び伸びている</b> (2024年 4.0% → 2026年 7.4%)。LLM の推論力を鍛える手段 (RLVR、GRPO) として再評価されたためです。</li>
+    <li><b>拡散モデルは2025年に頭打ち。</b>関心はフローマッチングや世界モデルへ移りつつあります。</li>
+  </ul>
+  <details>
+    <summary>全25テーマの数値表を開く</summary>
+    <div class="tbl-wrap" style="margin-top:10px"><table id="themeTable"></table></div>
+  </details>
+</section>
+
+<section id="latest">
+  <div class="head"><span class="eyebrow">Latest submissions</span><h2>最新投稿のトピック構成</h2><p>cs.LG / cs.AI / cs.CL / cs.CV の9月の投稿タイトルを、2024年・2025年・2026年で比較しました。</p></div>
+  <div class="card">
+    <div class="chart-box tall"><canvas id="latestChart" role="img" aria-label="9月投稿論文のタイトルに占めるトピックの割合の横棒グラフ"></canvas></div>
+    <p class="src" id="latestSrc"></p>
+  </div>
+  <ul class="points">
+    <li><b>エージェントが2年で約5倍</b> (2.2% → 5.8% → 10.9%)。タイトルでは LLM (15.6%) に次ぐ2位です。「LLM を使った X」から「エージェントとしての X」へ、論文の打ち出し方が変わっています。</li>
+    <li><b>ベンチマークと評価も伸びている</b> (5.5% → 9.2%)。「何を、どう測るか」自体が研究の主題になりました。</li>
+    <li><b>推論と強化学習は2025年がピーク。</b>タイトルに掲げるテーマから、エージェント訓練の標準的な部品へと変わりつつあります。</li>
+  </ul>
+</section>
+
+<section id="emerging">
+  <div class="head"><span class="eyebrow">Emerging terms</span><h2>2026年に急浮上したキーワード</h2><p>arXiv の9月新着タイトルと、Hugging Face Daily Papers の注目論文 (タイトル+要旨) での出現率。</p></div>
+  <div class="tbl-wrap"><table id="emergingTable"></table></div>
+  <p class="src">「HF 全体」は 2026年8月1日〜9月25日に Daily Papers に取り上げられた 1,196本、「HF 上位200」は upvote 数の上位200本での出現率です。</p>
+  <ul class="points">
+    <li><b>ハーネス、自己改善、ツール利用は、注目度が高いほど出現率も高い</b> (上位200本では全体の約2倍)。モデルを包む実行基盤 (ハーネス) を、モデル自身に設計・改善させる研究に関心が集まっています。</li>
+    <li><b>記憶はタイトル比で1年に2倍以上。</b>長時間動くエージェントには、文脈窓を超えて経験を保持する仕組みが必要になり、継続学習の研究が再び活発になっています。</li>
+    <li><b>on-policy 蒸留は1年で約10倍。</b>強化学習で得た能力を小さなモデルへ移す、新しい事後学習の手法として定着しつつあります。</li>
+  </ul>
+</section>
+
+<section id="papers">
+  <div class="head"><span class="eyebrow">Community picks · 2026.08–09</span><h2>注目を集めた論文</h2><p>Hugging Face Daily Papers の upvote 上位24本。技術報告型のオープンモデル、環境のスケーリング、AI による AI 研究、潜在空間での推論が目立ちます。</p></div>
+  <ol class="papers" id="paperList"></ol>
+</section>
+
+<section id="directions">
+  <div class="head"><span class="eyebrow">Synthesis</span><h2>アカデミアの技術動向が進む6つの方向</h2><p>20年の長期トレンドと、最新投稿の短期シグナルを重ね合わせた結果です。</p></div>
+  <div class="dirs" id="dirGrid"></div>
+  <blockquote>2006〜2020年の AI 研究は「データから良い関数を学習する方法」を競い、2021年以降は「規模」を競ってきた。2025〜2026年のいまは、「自律的に考え・行動し・自己改善するシステムを、どう作り、どう測り、どう安全に保つか」を競う段階に入っている。</blockquote>
+  <div class="card">
+    <h3 style="margin-bottom:8px">今後1〜2年の注目点</h3>
+    <ul class="points">
+      <li><b>エージェントの信頼性と評価:</b>長時間タスクのベンチマーク (Terminal-Bench、SWE-bench 系) が飽和した後の、次の評価軸。</li>
+      <li><b>継続学習と記憶:</b>事前学習と推論の間にある「使いながら学ぶ」モデル。</li>
+      <li><b>世界モデルと身体性の統合:</b>動画生成、3D/4D、VLA が一つの世界モデルにまとまるか。</li>
+      <li><b>自己改善ループの安全性:</b>自己改善が広がるほど、アラインメント・レッドチーミング・解釈性の重要性が増す。</li>
+      <li><b>Transformer の後継:</b>状態空間モデル、線形注意、拡散LM、潜在推論は現時点では 1% 前後の少数派だが、効率化の要請から研究が続いている。</li>
+    </ul>
+  </div>
+</section>
+
+<section id="notes">
+  <div class="head"><span class="eyebrow">Method &amp; caveats</span><h2>データと注意点</h2></div>
+  <ul class="points">
+    <li>arXiv は査読前のプレプリントが中心で、学会に採択された論文とは一致しません。産業界の研究の一部や、非英語圏の研究は含まれにくい傾向があります。</li>
+    <li>キーワードの割合は傾向を見るための目安です。語の意味の揺れや、技術が普及して名前が書かれなくなる影響を受けます。分子 (cs+stat の要旨検索) と分母 (cs の年間件数) の範囲も完全には一致しません。</li>
+    <li>2026年の値は9月25日までの集計です。年換算の値はその旨を明記しています。</li>
+    <li>Hugging Face Daily Papers はコミュニティが選んだサンプルで、生成AIやエージェントなど話題性の高い領域に偏っています。</li>
+  </ul>
+</section>
+
+<footer>
+  <div>データ: arXiv (一覧ページ・詳細検索・月別一覧)、Hugging Face Daily Papers API。収集・分析・作図のスクリプトはリポジトリの <span class="mono">scripts/</span>、生データは <span class="mono">data/</span> にあります。</div>
+  <div>作成 2026-09-26</div>
+</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const DATA = {"lists":{"cs":{"2006":2071,"2007":3055,"2008":3963,"2009":5214,"2010":8095,"2011":9798,"2012":13239,"2013":16081,"2014":17718,"2015":20402,"2016":25586,"2017":32731,"2018":43962,"2019":56006,"2020":71442,"2021":77533,"2022":81994,"2023":99645,"2024":125606,"2025":152238,"2026":142934},"cs.LG":{"2006":77,"2007":84,"2008":131,"2009":230,"2010":334,"2011":468,"2012":1318,"2013":1420,"2014":1741,"2015":2491,"2016":3574,"2017":5236,"2018":10482,"2019":19263,"2020":25901,"2021":26522,"2022":28685,"2023":32898,"2024":39821,"2025":46098,"2026":40362},"cs.AI":{"2006":169,"2007":192,"2008":278,"2009":380,"2010":477,"2011":786,"2012":1089,"2013":1772,"2014":1031,"2015":1115,"2016":1940,"2017":2811,"2018":4280,"2019":4758,"2020":7414,"2021":12494,"2022":14784,"2023":21743,"2024":33037,"2025":45099,"2026":45040},"cs.CL":{"2006":52,"2007":65,"2008":71,"2009":91,"2010":85,"2011":126,"2012":224,"2013":332,"2014":560,"2015":825,"2016":1694,"2017":2398,"2018":3728,"2019":5382,"2020":7125,"2021":8092,"2022":8959,"2023":13565,"2024":20654,"2025":23696,"2026":20910},"cs.CV":{"2006":38,"2007":61,"2008":84,"2009":148,"2010":289,"2011":380,"2012":582,"2013":850,"2014":1347,"2015":2262,"2016":3633,"2017":5701,"2018":8599,"2019":11600,"2020":15329,"2021":17227,"2022":19643,"2023":24404,"2024":30676,"2025":35026,"2026":28493},"stat.ML":{"2006":null,"2007":43,"2008":99,"2009":163,"2010":253,"2011":433,"2012":1131,"2013":1202,"2014":1359,"2015":1827,"2016":2639,"2017":4038,"2018":8378,"2019":12744,"2020":12805,"2021":5230,"2022":4990,"2023":5326,"2024":5901,"2025":6406,"2026":5256},"cs.RO":{"2006":35,"2007":97,"2008":67,"2009":65,"2010":70,"2011":119,"2012":158,"2013":205,"2014":274,"2015":368,"2016":783,"2017":1256,"2018":1843,"2019":2857,"2020":3969,"2021":4709,"2022":5200,"2023":6737,"2024":8663,"2025":10564,"2026":10887},"cs.MA":{"2006":42,"2007":34,"2008":72,"2009":83,"2010":94,"2011":110,"2012":135,"2013":141,"2014":212,"2015":166,"2016":237,"2017":321,"2018":460,"2019":733,"2020":931,"2021":956,"2022":1039,"2023":1197,"2024":1398,"2025":2437,"2026":2849}},"share":{"SVM / カーネル法":{"2006":0.48,"2007":0.88,"2008":0.56,"2009":0.44,"2010":0.49,"2011":0.43,"2012":0.52,"2013":0.65,"2014":0.75,"2015":0.77,"2016":0.82,"2017":0.88,"2018":0.79,"2019":0.81,"2020":0.76,"2021":0.59,"2022":0.54,"2023":0.45,"2024":0.39,"2025":0.39,"2026":0.31},"グラフィカルモデル / 変分推論":{"2006":0.14,"2007":0.52,"2008":0.35,"2009":0.46,"2010":0.54,"2011":0.51,"2012":1.4,"2013":0.73,"2014":0.73,"2015":0.84,"2016":0.81,"2017":0.83,"2018":0.74,"2019":0.69,"2020":0.58,"2021":0.55,"2022":0.47,"2023":0.44,"2024":0.35,"2025":0.32,"2026":0.37},"深層学習":{"2006":0.0,"2007":0.0,"2008":0.03,"2009":0.02,"2010":0.01,"2011":0.03,"2012":0.05,"2013":0.25,"2014":0.64,"2015":1.81,"2016":3.31,"2017":6.13,"2018":9.05,"2019":10.22,"2020":11.24,"2021":11.6,"2022":11.1,"2023":9.71,"2024":8.45,"2025":7.09,"2026":5.08},"CNN (畳み込み)":{"2006":0.68,"2007":0.88,"2008":0.4,"2009":0.54,"2010":0.51,"2011":0.49,"2012":0.41,"2013":0.5,"2014":1.06,"2015":2.76,"2016":4.56,"2017":6.7,"2018":7.91,"2019":7.64,"2020":7.04,"2021":6.44,"2022":5.65,"2023":4.13,"2024":3.65,"2025":3.01,"2026":2.44},"RNN / LSTM":{"2006":0.05,"2007":0.07,"2008":0.1,"2009":0.04,"2010":0.02,"2011":0.02,"2012":0.06,"2013":0.09,"2014":0.2,"2015":0.72,"2016":2.0,"2017":2.73,"2018":2.88,"2019":2.38,"2020":2.03,"2021":1.89,"2022":1.42,"2023":1.08,"2024":0.98,"2025":0.95,"2026":0.74},"GAN":{"2006":0.0,"2007":0.0,"2008":0.0,"2009":0.02,"2010":0.0,"2011":0.0,"2012":0.0,"2013":0.0,"2014":0.01,"2015":0.02,"2016":0.2,"2017":0.94,"2018":1.72,"2019":1.88,"2020":1.62,"2021":1.55,"2022":1.36,"2023":1.06,"2024":0.76,"2025":0.56,"2026":0.35},"強化学習":{"2006":0.14,"2007":0.1,"2008":0.33,"2009":0.21,"2010":0.19,"2011":0.4,"2012":0.51,"2013":0.33,"2014":0.4,"2015":0.37,"2016":0.93,"2017":1.75,"2018":2.6,"2019":3.23,"2020":3.61,"2021":3.85,"2022":4.15,"2023":4.03,"2024":3.97,"2025":5.31,"2026":7.38},"グラフニューラルネット":{"2006":0.0,"2007":0.0,"2008":0.0,"2009":0.0,"2010":0.0,"2011":0.0,"2012":0.0,"2013":0.0,"2014":0.0,"2015":0.0,"2016":0.0,"2017":0.02,"2018":0.11,"2019":0.44,"2020":0.85,"2021":1.27,"2022":1.68,"2023":1.69,"2024":1.64,"2025":1.52,"2026":1.25},"Transformer / Attention":{"2006":3.28,"2007":3.57,"2008":3.84,"2009":4.3,"2010":4.29,"2011":3.78,"2012":3.78,"2013":4.12,"2014":4.09,"2015":4.58,"2016":4.3,"2017":4.42,"2018":4.51,"2019":5.26,"2020":6.09,"2021":7.99,"2022":9.52,"2023":10.16,"2024":11.05,"2025":12.4,"2026":13.74},"自己教師あり / 対照学習":{"2006":0.0,"2007":0.0,"2008":0.0,"2009":0.0,"2010":0.0,"2011":0.02,"2012":0.0,"2013":0.01,"2014":0.0,"2015":0.01,"2016":0.03,"2017":0.13,"2018":0.24,"2019":0.51,"2020":1.22,"2021":2.33,"2022":3.45,"2023":3.56,"2024":3.03,"2025":2.73,"2026":2.49},"大規模言語モデル (LLM)":{"2006":0.0,"2007":0.0,"2008":0.0,"2009":0.0,"2010":0.0,"2011":0.0,"2012":0.01,"2013":0.0,"2014":0.01,"2015":0.0,"2016":0.0,"2017":0.0,"2018":0.0,"2019":0.01,"2020":0.03,"2021":0.07,"2022":0.4,"2023":4.67,"2024":13.58,"2025":21.15,"2026":28.36},"拡散モデル":{"2006":0.0,"2007":0.03,"2008":0.03,"2009":0.04,"2010":0.01,"2011":0.04,"2012":0.08,"2013":0.05,"2014":0.1,"2015":0.06,"2016":0.07,"2017":0.07,"2018":0.06,"2019":0.03,"2020":0.05,"2021":0.06,"2022":0.32,"2023":1.82,"2024":3.1,"2025":3.57,"2026":3.07},"マルチモーダル / VLM":{"2006":0.14,"2007":0.49,"2008":0.13,"2009":0.19,"2010":0.19,"2011":0.17,"2012":0.2,"2013":0.24,"2014":0.21,"2015":0.3,"2016":0.48,"2017":0.66,"2018":0.71,"2019":0.77,"2020":0.85,"2021":1.04,"2022":1.46,"2023":2.39,"2024":4.28,"2025":7.9,"2026":11.77},"エージェント (LLM/AI agent)":{"2006":1.98,"2007":2.29,"2008":2.2,"2009":2.84,"2010":2.22,"2011":3.16,"2012":2.89,"2013":2.57,"2014":2.99,"2015":2.42,"2016":2.66,"2017":2.87,"2018":3.39,"2019":3.82,"2020":3.95,"2021":4.45,"2022":4.55,"2023":4.57,"2024":5.16,"2025":8.2,"2026":16.83},"推論 (reasoning)":{"2006":3.33,"2007":2.82,"2008":3.61,"2009":2.76,"2010":3.21,"2011":3.75,"2012":3.87,"2013":5.01,"2014":3.97,"2015":3.45,"2016":3.32,"2017":3.79,"2018":3.73,"2019":4.1,"2020":4.28,"2021":4.29,"2022":4.55,"2023":5.06,"2024":5.95,"2025":10.77,"2026":17.18},"RAG (検索拡張生成)":{"2006":0.0,"2007":0.0,"2008":0.0,"2009":0.0,"2010":0.0,"2011":0.0,"2012":0.0,"2013":0.0,"2014":0.0,"2015":0.0,"2016":0.0,"2017":0.0,"2018":0.0,"2019":0.0,"2020":0.0,"2021":0.02,"2022":0.04,"2023":0.16,"2024":0.93,"2025":1.77,"2026":2.16},"解釈性 / 説明可能AI":{"2006":3.96,"2007":4.75,"2008":4.01,"2009":4.33,"2010":4.61,"2011":5.02,"2012":4.29,"2013":4.63,"2014":4.41,"2015":4.65,"2016":4.87,"2017":5.0,"2018":5.49,"2019":5.77,"2020":6.42,"2021":7.07,"2022":7.16,"2023":7.22,"2024":7.71,"2025":10.45,"2026":14.28},"連合学習":{"2006":0.0,"2007":0.0,"2008":0.0,"2009":0.0,"2010":0.0,"2011":0.0,"2012":0.0,"2013":0.0,"2014":0.0,"2015":0.0,"2016":0.0,"2017":0.01,"2018":0.04,"2019":0.24,"2020":0.57,"2021":1.0,"2022":1.37,"2023":1.42,"2024":1.41,"2025":1.33,"2026":1.02},"Mixture of Experts":{"2006":0.0,"2007":0.0,"2008":0.0,"2009":0.02,"2010":0.01,"2011":0.02,"2012":0.03,"2013":0.01,"2014":0.03,"2015":0.03,"2016":0.02,"2017":0.05,"2018":0.04,"2019":0.05,"2020":0.05,"2021":0.08,"2022":0.14,"2023":0.15,"2024":0.34,"2025":0.69,"2026":1.13},"状態空間モデル / Mamba":{"2006":0.0,"2007":0.13,"2008":0.1,"2009":0.04,"2010":0.2,"2011":0.09,"2012":0.11,"2013":0.17,"2014":0.1,"2015":0.2,"2016":0.2,"2017":0.17,"2018":0.12,"2019":0.12,"2020":0.09,"2021":0.13,"2022":0.12,"2023":0.13,"2024":0.58,"2025":0.81,"2026":0.83},"世界モデル":{"2006":0.1,"2007":0.03,"2008":0.03,"2009":0.02,"2010":0.02,"2011":0.04,"2012":0.02,"2013":0.06,"2014":0.03,"2015":0.05,"2016":0.04,"2017":0.02,"2018":0.04,"2019":0.05,"2020":0.05,"2021":0.06,"2022":0.08,"2023":0.13,"2024":0.2,"2025":0.43,"2026":1.31},"Embodied / ロボット基盤モデル":{"2006":0.43,"2007":0.2,"2008":0.1,"2009":0.06,"2010":0.14,"2011":0.17,"2012":0.12,"2013":0.24,"2014":0.11,"2015":0.16,"2016":0.16,"2017":0.23,"2018":0.16,"2019":0.22,"2020":0.24,"2021":0.27,"2022":0.36,"2023":0.41,"2024":0.65,"2025":1.23,"2026":2.81},"量子化 / 蒸留 / 効率化":{"2006":0.97,"2007":1.01,"2008":1.06,"2009":0.73,"2010":0.79,"2011":0.86,"2012":0.78,"2013":0.6,"2014":0.7,"2015":0.72,"2016":0.76,"2017":0.77,"2018":0.88,"2019":1.01,"2020":1.16,"2021":1.36,"2022":1.58,"2023":1.61,"2024":1.79,"2025":2.04,"2026":2.55},"RLHF / 選好最適化":{"2006":0.0,"2007":0.0,"2008":0.0,"2009":0.0,"2010":0.01,"2011":0.0,"2012":0.01,"2013":0.02,"2014":0.0,"2015":0.01,"2016":0.02,"2017":0.02,"2018":0.03,"2019":0.02,"2020":0.04,"2021":0.03,"2022":0.06,"2023":0.21,"2024":0.65,"2025":0.99,"2026":0.99},"テスト時計算 / 思考連鎖":{"2006":0.0,"2007":0.2,"2008":0.03,"2009":0.02,"2010":0.04,"2011":0.02,"2012":0.03,"2013":0.06,"2014":0.12,"2015":0.16,"2016":0.23,"2017":0.32,"2018":0.37,"2019":0.41,"2020":0.42,"2021":0.5,"2022":0.55,"2023":0.86,"2024":1.2,"2025":2.46,"2026":3.65}},"topic_share":{"LLM / 言語モデル":{"2024-09":14.38,"2025-09":17.62,"2026-09":15.63},"エージェント / Agentic":{"2024-09":2.2,"2025-09":5.81,"2026-09":10.86},"推論 / Reasoning":{"2024-09":1.56,"2025-09":5.0,"2026-09":4.07},"強化学習 (RL / RLVR / GRPO)":{"2024-09":2.69,"2025-09":4.22,"2026-09":3.07},"拡散 / フローマッチング":{"2024-09":4.31,"2025-09":4.65,"2026-09":3.05},"マルチモーダル / VLM / MLLM":{"2024-09":4.57,"2025-09":6.88,"2026-09":6.33},"動画生成・理解":{"2024-09":2.7,"2025-09":2.66,"2026-09":2.88},"3D / 4D / Gaussian Splatting":{"2024-09":3.6,"2025-09":3.19,"2026-09":3.0},"世界モデル":{"2024-09":0.15,"2025-09":0.26,"2026-09":1.01},"ロボット / Embodied / VLA":{"2024-09":2.06,"2025-09":2.28,"2026-09":2.84},"RAG / 検索":{"2024-09":1.84,"2025-09":2.26,"2026-09":2.46},"安全性 / アラインメント":{"2024-09":2.17,"2025-09":2.97,"2026-09":3.27},"解釈性 / Mechanistic":{"2024-09":1.88,"2025-09":2.44,"2026-09":1.98},"ベンチマーク / 評価":{"2024-09":5.49,"2025-09":7.19,"2026-09":9.19},"効率化 (量子化・蒸留・推論高速化)":{"2024-09":6.14,"2025-09":6.62,"2026-09":6.77},"Transformer / Attention":{"2024-09":4.45,"2025-09":4.42,"2026-09":3.59},"状態空間 / 線形注意 (Mamba等)":{"2024-09":0.99,"2025-09":0.6,"2026-09":0.53},"Mixture of Experts":{"2024-09":0.29,"2025-09":0.56,"2026-09":0.65},"グラフ (GNN)":{"2024-09":0.88,"2025-09":0.78,"2026-09":0.52},"連合学習 / プライバシー":{"2024-09":2.76,"2025-09":2.12,"2026-09":1.88},"コード生成 / SWE":{"2024-09":0.64,"2025-09":0.62,"2026-09":1.01},"数学 / 定理証明":{"2024-09":0.55,"2025-09":0.69,"2026-09":0.69},"科学のためのAI (AI4Science)":{"2024-09":2.41,"2025-09":2.3,"2026-09":2.23},"医療 / ヘルスケア":{"2024-09":3.21,"2025-09":3.29,"2026-09":2.77},"テスト時計算 / CoT":{"2024-09":0.51,"2025-09":1.49,"2026-09":1.03},"合成データ":{"2024-09":0.34,"2025-09":0.33,"2026-09":0.23},"トークナイズ / 長文脈":{"2024-09":0.5,"2025-09":0.5,"2026-09":0.62},"音声 / Speech":{"2024-09":3.65,"2025-09":2.92,"2026-09":2.77}},"emerging":{"harness (エージェント実行基盤)":{"2024-09":0.2,"2025-09":0.11,"2026-09":0.81},"self-improvement / self-evolving":{"2024-09":0.07,"2025-09":0.31,"2026-09":0.54},"memory":{"2024-09":0.82,"2025-09":0.89,"2026-09":2.1},"skills":{"2024-09":0.16,"2025-09":0.21,"2026-09":0.72},"world model":{"2024-09":0.15,"2025-09":0.35,"2026-09":1.22},"on-policy / self-distillation":{"2024-09":0.07,"2025-09":0.06,"2026-09":0.6},"GRPO / RLVR":{"2024-09":0.0,"2025-09":0.31,"2026-09":0.37},"tool use":{"2024-09":0.47,"2025-09":0.73,"2026-09":1.08},"GUI / computer use":{"2024-09":0.04,"2025-09":0.36,"2026-09":0.37},"LLM-as-a-judge":{"2024-09":0.13,"2025-09":0.24,"2026-09":0.46},"hallucination":{"2024-09":0.45,"2025-09":0.68,"2026-09":0.57},"diffusion LM":{"2024-09":0.0,"2025-09":0.28,"2026-09":0.28}},"hf_emerging":{"harness (エージェント実行基盤)":{"all":8.2,"top200":16.0},"self-improvement / self-evolving":{"all":5.3,"top200":11.0},"memory":{"all":15.1,"top200":14.5},"skills":{"all":6.8,"top200":9.5},"world model":{"all":6.7,"top200":10.5},"on-policy / self-distillation":{"all":6.1,"top200":9.0},"GRPO / RLVR":{"all":6.1,"top200":8.5},"tool use":{"all":14.0,"top200":24.0},"GUI / computer use":{"all":1.7,"top200":2.5},"LLM-as-a-judge":{"all":5.7,"top200":4.5},"hallucination":{"all":2.3,"top200":1.0},"diffusion LM":{"all":0.8,"top200":1.5}},"hf_top":[{"id":"2608.09888","title":"BDH-CQ: In-Context Learning with Recurrent Latent Reasoning","upvotes":790,"date":"2026-08-11"},{"id":"2609.17488","title":"LimiX-2: A Contextual Mechanism Network Towards General Structured-Data Intelligence","upvotes":775,"date":"2026-09-17"},{"id":"2609.11638","title":"Vidu S2: Real-Time Interactive, Editable, and Spatial Video Generation","upvotes":699,"date":"2026-09-15"},{"id":"2608.12564","title":"Scaling Automatic Research Agents via World Models","upvotes":478,"date":"2026-09-10"},{"id":"2608.15089","title":"StateM: Reaching 95.3% Raw Accuracy, or a \\$15 Frontier Run, on Terminal-Bench 2.1 via Harness Scaling","upvotes":448,"date":"2026-08-18"},{"id":"2609.15818","title":"Atria Dawn: The Dawn of Agentic Superintelligence","upvotes":426,"date":"2026-09-15"},{"id":"2609.01591","title":"StudentSim: Training LLM-based Student Simulators","upvotes":394,"date":"2026-09-02"},{"id":"2609.02749","title":"Repo-To-Skill: Distilling GitHub Repositories Into AI4AI Skills","upvotes":391,"date":"2026-09-03"},{"id":"2609.06986","title":"Continual Learning Mechanisms Compose for Long-Horizon Memorization","upvotes":373,"date":"2026-09-16"},{"id":"2609.10715","title":"NCP-ArchPreview Technical Report: Moving towards Latent Space Language Models through Next Concept Prediction","upvotes":328,"date":"2026-09-11"},{"id":"2609.04199","title":"Compile by Training: Turning Natural-Language Specifications into Local Neural Functions","upvotes":326,"date":"2026-09-04"},{"id":"2609.00111","title":"Qwen-Drive-1.0: An Initial Step towards a Vision-Language Foundation Model for Autonomous Driving","upvotes":313,"date":"2026-09-02"},{"id":"2608.14391","title":"Can We Defend Against AI-Generated Video Attacks on Real-World Crisis Events? A Systematic Evaluation of Detectors, Generators and Social Dissemination","upvotes":285,"date":"2026-08-17"},{"id":"2609.11929","title":"SenseNova-U1.5: Towards Native Unified Visual Intelligence","upvotes":273,"date":"2026-09-11"},{"id":"2608.00677","title":"OpenART: Scaling Agent Red Teaming via Open-Ended Environment Evolution","upvotes":265,"date":"2026-08-13"},{"id":"2609.13356","title":"ZGCM-1: A Fully Open and Extremely Efficient Foundation Model for Math and Agentic Search","upvotes":260,"date":"2026-09-15"},{"id":"2609.14858","title":"Dream-RSI: Recursive Self-Improvement through Evolving Worlds","upvotes":245,"date":"2026-09-15"},{"id":"2609.04148","title":"Terminal-Universe: Turning Agent Trajectories into Scalable Terminal Environments","upvotes":244,"date":"2026-09-04"},{"id":"2609.23088","title":"OmniEdu: Open Foundation Models for Learning and Teaching","upvotes":231,"date":"2026-09-22"},{"id":"2609.01437","title":"HarnessDev: Can LLMs Create and Evolve Their Own Agent Harness?","upvotes":219,"date":"2026-09-03"},{"id":"2609.13814","title":"Realtime-Venus: A full-duplex interaction system with asynchronous delegation","upvotes":213,"date":"2026-09-22"},{"id":"2609.14857","title":"ModularRSI: Modular and Generalizable Recursive Harness Self-Improvement","upvotes":212,"date":"2026-09-16"},{"id":"2608.23283","title":"Apodex 1.1: Scaling Agentic Intelligence for Complex Work","upvotes":211,"date":"2026-08-25"},{"id":"2609.24972","title":"RRSI: Regularized Recursive Self-Improvement of Agent Harnesses","upvotes":205,"date":"2026-09-22"},{"id":"2608.26105","title":"VBVR-Pro: A Scalable and Verifiable Suite for Native Visual Reasoning","upvotes":189,"date":"2026-08-27"},{"id":"2609.28654","title":"Training Object Permanence in World Models","upvotes":189,"date":"2026-09-25"},{"id":"2608.10744","title":"Beyond Pixels: From Video Priors to 4D Worlds","upvotes":186,"date":"2026-08-12"},{"id":"2609.03796","title":"LLaDA-Image: Building Strong Image Generators with Fully Open Training Recipes","upvotes":184,"date":"2026-09-04"},{"id":"2609.19969","title":"DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression","upvotes":180,"date":"2026-09-18"},{"id":"2608.06296","title":"On-Policy Self-Distillation without Any Supervision","upvotes":179,"date":"2026-08-11"},{"id":"2608.09819","title":"Macaron-V1: Towards Open Continual Learning with Self-Improvement and Mixture-of-LoRA","upvotes":177,"date":"2026-08-11"},{"id":"2608.19880","title":"EnvHarness: Awakening Static Worlds for Agent Learning","upvotes":174,"date":"2026-08-21"},{"id":"2608.19583","title":"VGI-Bench: Probing Visual Intelligence in Video Generation Models","upvotes":173,"date":"2026-08-27"},{"id":"2609.00365","title":"Dr. Claw: An AI Scientist Workspace for Vibe Research","upvotes":173,"date":"2026-09-07"},{"id":"2609.08183","title":"NeoHorse-1: Towards Recursive Self-Improvement via Agentic Post-Training with Routing Harness","upvotes":173,"date":"2026-09-09"},{"id":"2609.14973","title":"PhysBrain 1.5: From Vision-Language Models to Physical Foundation Models","upvotes":173,"date":"2026-09-15"},{"id":"2609.11115","title":"Benchmark Radar: A Living Database and Search Engine for AI Benchmarks and Evaluation","upvotes":171,"date":"2026-09-14"},{"id":"2608.31111","title":"Aspire: Can Models Self-Evolve from Vague Goals?","upvotes":168,"date":"2026-09-03"},{"id":"2608.10915","title":"ComBodied Agents: a New Paradigm of Human-Centric Agentic AI","upvotes":165,"date":"2026-08-12"},{"id":"2609.08936","title":"AuK Technical Report: An Open-Source Foundational Model for Speech Generation and Editing","upvotes":164,"date":"2026-09-09"}],"dedup_n":{"2024-09":6852,"2025-09":9787,"2026-09":9487}};
+
+const ERAS = [
+  {yr:"2006–2011", t:"統計的機械学習", tags:["SVM・カーネル法","グラフィカルモデル","スパース推定","ブースティング"], ev:"Deep Belief Net (2006)、ImageNet (2009)、GPU の汎用計算利用", q:"理論保証のある学習を、凸最適化でどう設計するか"},
+  {yr:"2012–2016", t:"深層学習革命", tags:["CNN","word2vec","LSTM","GAN","DQN"], ev:"AlexNet (2012)、GAN (2014)、ResNet (2015)、AlphaGo (2016)", q:"人手の特徴量設計を、学習に置き換えられるか"},
+  {yr:"2017–2019", t:"Transformer と事前学習", tags:["Transformer","BERT","GNN","AutoML"], ev:"Attention Is All You Need (2017)、BERT (2018)、GPT-2 (2019)", q:"汎用的な表現を事前学習して転移できるか"},
+  {yr:"2020–2022", t:"スケーリングと基盤モデル", tags:["GPT-3","スケーリング則","ViT","CLIP","拡散モデル"], ev:"GPT-3 (2020)、AlphaFold2 (2021)、Stable Diffusion・ChatGPT (2022)", q:"規模を大きくすれば、能力は予測どおりに伸びるか"},
+  {yr:"2023–2024", t:"LLM 全盛", tags:["RLHF/DPO","RAG","LoRA","MLLM","MoE","Mamba"], ev:"GPT-4 (2023)、オープンウェイトの普及、o1 (2024)", q:"LLM を安く・安全に・役立つ形で使うには"},
+  {yr:"2025–2026", t:"推論・エージェント・世界モデル", tags:["RLVR/GRPO","テスト時計算","ハーネス","世界モデル","VLA"], ev:"DeepSeek-R1 (2025)、数学オリンピック金メダル水準、エージェント型コーディングの普及", q:"モデルは自分で考え、行動し、改善できるか", now:true},
+];
+
+const DIRS = [
+  {k:"A", t:"学習 → 推論時の思考", ev:[["reasoning","5.9% → 17.2%"],["テスト時計算","1.2% → 3.7%"]], s:"GRPO/RLVR が定着し、潜在推論や拡散LMなどの代替方式も登場", q:"学習時ではなく推論時に計算を使って、賢さを上げられるか"},
+  {k:"B", t:"モデル → エージェント・システム", ev:[["agent","5.2% → 16.8%"],["cs.AI","cs.LG を逆転"]], s:"ハーネス、記憶、スキル、ツール利用、自己改善が急増", q:"何時間・何日も自律して動き、自分の実行基盤を改善できるか"},
+  {k:"C", t:"テキスト → 世界 (身体性)", ev:[["マルチモーダル","4.3% → 11.8%"],["世界モデル","0.2% → 1.3%"]], s:"動画生成を世界シミュレータに使う研究、VLA、world-action model", q:"物理世界を予測し、その中で行動できるか"},
+  {k:"D", t:"性能競争 → 評価の科学", ev:[["解釈性","7.7% → 14.3%"],["評価 (タイトル)","5.5% → 9.2%"]], s:"LLM-as-a-judge が倍増し、ベンチマークの設計自体が研究対象に", q:"何を測れば、本当の能力や危険性が分かるか"},
+  {k:"E", t:"巨大化 → 効率化・オープン化", ev:[["MoE","0.3% → 1.1%"],["効率化","1.8% → 2.5%"]], s:"KVキャッシュ圧縮、on-policy 蒸留、完全オープンな訓練レシピ", q:"同じ能力を、より安く・誰でも再現できる形で得られるか"},
+  {k:"F", t:"人手のデータ → 自己改善", ev:[["RLHF","1.0% で横ばい"],["self-improve (HF上位)","11.0%"]], s:"環境の自動生成、再帰的自己改善、AI 科学者", q:"人間の監督なしに、能力とデータを増やし続けられるか"},
+];
+
+const PANELS = [
+  {t:"統計的機械学習〜深層学習初期", n:["SVM / カーネル法","グラフィカルモデル / 変分推論","CNN (畳み込み)","RNN / LSTM","GAN"]},
+  {t:"深層学習の汎用化", n:["深層学習","Transformer / Attention","強化学習","グラフニューラルネット","自己教師あり / 対照学習"]},
+  {t:"基盤モデル・生成AI", n:["大規模言語モデル (LLM)","拡散モデル","マルチモーダル / VLM","RAG (検索拡張生成)","Mixture of Experts"]},
+  {t:"2024年以降の新潮流", n:["推論 (reasoning)","エージェント (LLM/AI agent)","テスト時計算 / 思考連鎖","Embodied / ロボット基盤モデル","世界モデル"]},
+];
+
+const $ = s => document.querySelector(s);
+const el = (tag, attrs={}, html="") => { const e=document.createElement(tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (html) e.innerHTML=html; return e; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = n => n.toLocaleString("ja-JP");
+
+// 静的な要素の描画
+ERAS.forEach((e,i) => {
+  const d = el("article", {class:"era"+(e.now?" now":"")});
+  d.innerHTML = `<span class="yr">${e.yr}${e.now?" · 現在":""}</span><h3>${e.t}</h3><div>${e.tags.map(x=>`<span class="tag">${x}</span>`).join("")}</div><div style="font-size:12.5px">${e.ev}</div><div class="q">${e.q}</div>`;
+  $("#eraGrid").append(d);
+});
+DIRS.forEach(d => {
+  const c = el("article", {class:"dir"});
+  c.innerHTML = `<span class="k">方向 ${d.k}</span><h3>${d.t}</h3><div class="ev">${d.ev.map(([a,b])=>`<div>${a} <span>${b}</span></div>`).join("")}</div><div style="font-size:13px">${d.s}</div><div class="qq">${d.q}</div>`;
+  $("#dirGrid").append(c);
+});
+DATA.hf_top.slice(0,24).forEach(p => {
+  const li = el("li");
+  li.innerHTML = `<span class="up">▲${p.upvotes}</span><span><a href="https://arxiv.org/abs/${esc(p.id)}" target="_blank" rel="noopener">${esc(p.title)}</a><span class="id">arXiv:${esc(p.id)} · ${esc(p.date)}</span></span>`;
+  $("#paperList").append(li);
+});
+{
+  const Y = ["2010","2014","2018","2022","2024","2025","2026"];
+  const rows = Object.entries(DATA.share).map(([n,d]) => {
+    const peak = Object.keys(d).reduce((a,b)=> d[b]>d[a]?b:a);
+    return {n, d, peak};
+  }).sort((a,b)=>b.d["2026"]-a.d["2026"]);
+  let h = `<thead><tr><th>テーマ</th>${Y.map(y=>`<th style="text-align:right">${y}</th>`).join("")}<th>ピーク</th></tr></thead><tbody>`;
+  rows.forEach(r => {
+    h += `<tr><td>${r.n}</td>${Y.map(y=>`<td class="n">${r.d[y].toFixed(1)}%</td>`).join("")}<td>${r.peak==="2026"?'<span class="pill rise">上昇中</span>':`<span class="pill peak">${r.peak}年</span>`}</td></tr>`;
+  });
+  $("#themeTable").innerHTML = h + "</tbody>";
+
+  const E = DATA.emerging, HE = DATA.hf_emerging;
+  const names = Object.keys(E).sort((a,b)=>E[b]["2026-09"]-E[a]["2026-09"]);
+  const max = Math.max(...names.map(n=>E[n]["2026-09"]));
+  let g = `<thead><tr><th>キーワード</th><th style="text-align:right">2024-09</th><th style="text-align:right">2025-09</th><th>2026-09 (タイトル)</th><th style="text-align:right">1年の変化</th><th style="text-align:right">HF 全体</th><th style="text-align:right">HF 上位200</th></tr></thead><tbody>`;
+  names.forEach(n => {
+    const a=E[n]["2025-09"], b=E[n]["2026-09"];
+    const ch = a>0 ? `×${(b/a).toFixed(1)}` : "新規";
+    const cls = a>0 && b/a<1 ? "peak" : "rise";
+    g += `<tr><td>${n}</td><td class="n">${E[n]["2024-09"].toFixed(2)}%</td><td class="n">${a.toFixed(2)}%</td><td class="n" style="text-align:left"><span class="bar" style="width:${Math.max(2,90*b/max)}px"></span>${b.toFixed(2)}%</td><td class="n"><span class="pill ${cls}">${ch}</span></td><td class="n">${HE[n].all}%</td><td class="n">${HE[n].top200}%</td></tr>`;
+  });
+  $("#emergingTable").innerHTML = g + "</tbody>";
+  const dn = DATA.dedup_n;
+  $("#latestSrc").textContent = `出典: arXiv 月別一覧 cs.LG / cs.AI / cs.CL / cs.CV の重複を除いたタイトル (n = ${fmt(dn["2024-09"])} / ${fmt(dn["2025-09"])} / ${fmt(dn["2026-09"])})。2026年9月は25日まで。1本のタイトルが複数のトピックに該当することがあります。`;
+}
+
+// グラフ
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const SER = () => ["--s1","--s2","--s3","--s4","--s5","--s6","--s7","--s8"].map(css);
+const YEARS = Array.from({length:21}, (_,i)=>String(2006+i));
+const ANN = 365/268;
+const CATS = ["cs.LG","cs.AI","cs.CV","cs.CL","cs.RO","stat.ML","cs.MA"];
+const shown = new Set(["cs.LG","cs.AI","cs.CV","cs.CL","cs.RO","stat.ML"]);
+let charts = [];
+
+function baseOpts(){
+  const ink2 = css("--ink-2"), muted = css("--muted"), grid = css("--grid");
+  Chart.defaults.font.family = css("--f-body");
+  Chart.defaults.color = ink2;
+  return {
+    responsive:true, maintainAspectRatio:false, animation:{duration:0},
+    interaction:{mode:"index", intersect:false},
+    plugins:{
+      legend:{labels:{usePointStyle:true, pointStyle:"line", boxWidth:18, color:ink2, font:{size:12}}},
+      tooltip:{backgroundColor:css("--surface"), titleColor:css("--ink"), bodyColor:ink2, borderColor:css("--rule"), borderWidth:1, padding:10, boxPadding:4, usePointStyle:true}
+    },
+    scales:{
+      x:{grid:{display:false}, ticks:{color:muted, maxRotation:0, autoSkipPadding:14}, border:{color:css("--rule")}},
+      y:{grid:{color:grid}, ticks:{color:muted}, border:{display:false}, beginAtZero:true}
+    }
+  };
+}
+
+function growthChart(){
+  const s = SER(), o = baseOpts();
+  const ds = CATS.filter(c=>shown.has(c)).map(c => {
+    const i = CATS.indexOf(c), d = DATA.lists[c];
+    const vals = YEARS.map(y => d[y]==null ? null : (y==="2026" ? Math.round(d[y]*ANN) : d[y]));
+    return {label:c, data:vals, borderColor:s[i], backgroundColor:s[i], borderWidth:2, pointRadius:ctx=>ctx.dataIndex===20?5:0, pointHoverRadius:5, pointBackgroundColor:ctx=>ctx.dataIndex===20?css("--surface"):s[i], tension:.2,
+      segment:{borderDash:ctx=>ctx.p1DataIndex===20?[4,4]:undefined}};
+  });
+  o.scales.y.ticks.callback = v => fmt(v);
+  o.plugins.legend.display = false;
+  o.plugins.tooltip.callbacks = {
+    title: it => it[0].label==="2026" ? "2026年 (年換算の推計)" : it[0].label+"年",
+    label: it => ` ${it.dataset.label}: ${fmt(it.raw)} 件`
+  };
+  o.plugins.tooltip.itemSort = (a,b)=>b.raw-a.raw;
+  return new Chart($("#growthChart"), {type:"line", data:{labels:YEARS, datasets:ds}, options:o});
+}
+
+function themeCharts(){
+  const out = [];
+  $("#themePanels").innerHTML = "";
+  PANELS.forEach((p,pi) => {
+    const card = el("div",{class:"card"});
+    card.innerHTML = `<h3 style="margin-bottom:6px">${p.t}</h3><div class="chart-box small"><canvas role="img" aria-label="${p.t}の推移"></canvas></div>`;
+    $("#themePanels").append(card);
+    const s = SER(), o = baseOpts();
+    o.plugins.legend.position = "bottom";
+    o.plugins.legend.labels.font = {size:11};
+    o.scales.y.ticks.callback = v => v+"%";
+    o.plugins.tooltip.callbacks = {title: it => it[0].label + (it[0].label==="2026"?"年 (9/25まで)":"年"), label: it => ` ${it.dataset.label}: ${it.raw.toFixed(1)}%`};
+    o.plugins.tooltip.itemSort = (a,b)=>b.raw-a.raw;
+    const ds = p.n.map((n,i) => ({label:n, data:YEARS.map(y=>DATA.share[n][y]), borderColor:s[i], backgroundColor:s[i], borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:.25}));
+    out.push(new Chart(card.querySelector("canvas"), {type:"line", data:{labels:YEARS, datasets:ds}, options:o}));
+  });
+  return out;
+}
+
+function latestChart(){
+  const T = DATA.topic_share, M = ["2024-09","2025-09","2026-09"];
+  const names = Object.keys(T).sort((a,b)=>T[b]["2026-09"]-T[a]["2026-09"]).slice(0,18);
+  const cols = ["--q1","--q2","--q3"].map(css);
+  const o = baseOpts();
+  o.indexAxis = "y";
+  o.interaction = {mode:"index", intersect:false, axis:"y"};
+  o.scales = {
+    x:{grid:{color:css("--grid")}, border:{display:false}, ticks:{color:css("--muted"), callback:v=>v+"%"}, beginAtZero:true},
+    y:{grid:{display:false}, border:{color:css("--rule")}, ticks:{color:css("--ink-2"), font:{size:12}, autoSkip:false}}
+  };
+  o.plugins.legend.labels.pointStyle = "rectRounded";
+  o.plugins.tooltip.callbacks = {label: it => ` ${it.dataset.label}: ${it.raw.toFixed(1)}%`};
+  const ds = M.map((m,i) => ({label:m+(m==="2026-09"?" (25日まで)":""), data:names.map(n=>T[n][m]), backgroundColor:cols[i], borderRadius:{topRight:4,bottomRight:4}, borderSkipped:"start", barPercentage:.85, categoryPercentage:.8}));
+  return new Chart($("#latestChart"), {type:"bar", data:{labels:names, datasets:ds}, options:o});
+}
+
+function buildCtrl(){
+  const box = $("#growthCtrl");
+  box.innerHTML = "";
+  CATS.forEach((c,i) => {
+    const b = el("button", {type:"button", "aria-pressed": shown.has(c)?"true":"false"});
+    b.innerHTML = `<span style="display:inline-block;width:10px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px;background:var(${["--s1","--s2","--s3","--s4","--s5","--s6","--s7"][i]})"></span>${c}`;
+    b.addEventListener("click", () => {
+      if (shown.has(c)) { if (shown.size>1) shown.delete(c); } else shown.add(c);
+      render();
+    });
+    box.append(b);
+  });
+}
+
+function render(){
+  charts.forEach(c=>c.destroy());
+  buildCtrl();
+  charts = [growthChart(), ...themeCharts(), latestChart()];
+}
+
+if (window.Chart) render();
+else document.querySelectorAll("canvas").forEach(c => c.parentElement.innerHTML = '<p class="src">グラフを読み込めませんでした。ネットワーク接続を確認して再読み込みしてください。</p>');
+
+// テーマ切替に追従
+if (window.Chart){
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+  new MutationObserver(render).observe(document.documentElement, {attributes:true, attributeFilter:["data-theme"]});
+}
+</script>
+</body>
+</html>
