@@ -45,8 +45,8 @@ class StreamingRecognizer(
     private var input: ParcelFileDescriptor? = null
     private val writer = Executors.newSingleThreadExecutor()
 
-    /** Latest partial hypothesis; used when the final result comes back empty. */
-    private var lastPartial = ""
+    private val transcript = TranscriptAssembler()
+    private var sampleRate = 16000
 
     val isActive get() = recognizer != null
 
@@ -60,7 +60,8 @@ class StreamingRecognizer(
             listener.onError("音声認識サービスが見つかりません")
             return
         }
-        lastPartial = ""
+        transcript.reset()
+        this.sampleRate = sampleRate
         val pipe = ParcelFileDescriptor.createPipe()
         input = pipe[0]
         output = ParcelFileDescriptor.AutoCloseOutputStream(pipe[1])
@@ -78,23 +79,39 @@ class StreamingRecognizer(
                 if (recognizer !== sr) return
                 val text = best(partialResults)
                 if (!text.isNullOrEmpty()) {
-                    lastPartial = text
-                    listener.onPartial(text)
+                    transcript.onPartial(text)
+                    listener.onPartial(transcript.text)
                 }
+            }
+
+            override fun onSegmentResults(segmentResults: Bundle) {
+                if (recognizer !== sr) return
+                val text = best(segmentResults).orEmpty()
+                listener.onLog("segment: \"$text\"")
+                transcript.onSegment(text)
+                listener.onPartial(transcript.text)
+            }
+
+            override fun onEndOfSegmentedSession() {
+                if (recognizer !== sr) return
+                listener.onLog("end of segmented session")
+                deliverFinal(transcript.text)
             }
 
             override fun onResults(results: Bundle) {
                 if (recognizer !== sr) return
                 val text = best(results).orEmpty()
-                listener.onLog("final: \"$text\" (partial: \"$lastPartial\")")
-                deliverFinal(text.ifEmpty { lastPartial })
+                listener.onLog("final: \"$text\" (collected: \"${transcript.text}\")")
+                transcript.onFinal(text)
+                deliverFinal(transcript.text)
             }
 
             override fun onError(error: Int) {
                 if (recognizer !== sr) return
-                listener.onLog("recognizer error $error (partial: \"$lastPartial\")")
-                if (lastPartial.isNotEmpty()) {
-                    deliverFinal(lastPartial)
+                val collected = transcript.text
+                listener.onLog("recognizer error $error (collected: \"$collected\")")
+                if (collected.isNotEmpty()) {
+                    deliverFinal(collected)
                 } else {
                     release()
                     listener.onError(describeError(error))
@@ -121,9 +138,15 @@ class StreamingRecognizer(
             // The key release decides when speech ends, not silence detection.
             putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 10_000L)
             putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 10_000L)
+            // Report each finished segment via onSegmentResults(), where supported.
+            putExtra(RecognizerIntent.EXTRA_SEGMENTED_SESSION, RecognizerIntent.EXTRA_AUDIO_SOURCE)
         }
         sr.startListening(intent)
+        // Recognizers need some silence before speech to detect where it begins.
+        writeSilence(PAD_MS)
     }
+
+    private fun writeSilence(ms: Int) = write(ShortArray(sampleRate * ms / 1000))
 
     /** Appends little-endian 16-bit PCM. */
     fun write(pcm: ShortArray) {
@@ -152,9 +175,16 @@ class StreamingRecognizer(
      */
     fun finish() {
         val sr = recognizer ?: return
-        sr.stopListening()
+        // Trailing silence lets the recognizer settle the last words before it stops.
+        writeSilence(PAD_MS)
+        main.postDelayed({
+            if (recognizer !== sr) return@postDelayed
+            // A segmented session ends at end-of-stream; others end on stopListening().
+            closeOutput()
+            sr.stopListening()
+        }, PAD_MS.toLong())
         main.removeCallbacks(finalTimeout)
-        main.postDelayed(finalTimeout, FINAL_TIMEOUT_MS)
+        main.postDelayed(finalTimeout, PAD_MS + FINAL_TIMEOUT_MS)
     }
 
     fun cancel() {
@@ -169,8 +199,8 @@ class StreamingRecognizer(
 
     private val finalTimeout = Runnable {
         if (recognizer == null) return@Runnable
-        listener.onLog("no final result in time (partial: \"$lastPartial\")")
-        deliverFinal(lastPartial)
+        listener.onLog("no final result in time (collected: \"${transcript.text}\")")
+        deliverFinal(transcript.text)
     }
 
     private fun deliverFinal(text: String) {
@@ -178,8 +208,7 @@ class StreamingRecognizer(
         listener.onFinal(text)
     }
 
-    private fun release() {
-        main.removeCallbacks(finalTimeout)
+    private fun closeOutput() {
         output?.let { out ->
             writer.execute {
                 try {
@@ -189,6 +218,11 @@ class StreamingRecognizer(
             }
         }
         output = null
+    }
+
+    private fun release() {
+        main.removeCallbacks(finalTimeout)
+        closeOutput()
         recognizer?.destroy()
         recognizer = null
         try {
@@ -220,5 +254,6 @@ class StreamingRecognizer(
 
     private companion object {
         const val FINAL_TIMEOUT_MS = 4000L
+        const val PAD_MS = 300
     }
 }

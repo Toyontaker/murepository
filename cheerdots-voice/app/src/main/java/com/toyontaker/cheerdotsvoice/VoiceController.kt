@@ -43,6 +43,9 @@ class VoiceController(private val context: Context, private val listener: Listen
     private var sessionStartedAt = 0L
     private var firstPacketAt = 0L
     private var lastPacketAt = 0L
+    private var peak = 0
+    private var sumSquares = 0.0
+    private var sampleCount = 0L
     private val recording = ByteArrayOutputStream()
 
     private val recognizer = StreamingRecognizer(context, object : StreamingRecognizer.Listener {
@@ -105,6 +108,9 @@ class VoiceController(private val context: Context, private val listener: Listen
         decodeErrors = 0
         sessionStartedAt = SystemClock.elapsedRealtime()
         firstPacketAt = 0L
+        peak = 0
+        sumSquares = 0.0
+        sampleCount = 0L
         decoder.reset()
         recording.reset()
         if (mode == Mode.RECOGNIZE) {
@@ -124,6 +130,10 @@ class VoiceController(private val context: Context, private val listener: Listen
         listener.onLog(
             "session: $packetCount/$expected packets, first audio after ${startDelay}ms, $decodeErrors decode errors"
         )
+        if (sampleCount > 0) {
+            val rms = Math.sqrt(sumSquares / sampleCount)
+            listener.onLog("level: peak %.0f dBFS, rms %.0f dBFS".format(dbfs(peak.toDouble()), dbfs(rms)))
+        }
         when (mode) {
             Mode.RECOGNIZE -> recognizer.finish()
             Mode.RECORD -> listener.onRecorded(recording.toByteArray(), CheerdotsProtocol.AUDIO_SAMPLE_RATE)
@@ -144,6 +154,12 @@ class VoiceController(private val context: Context, private val listener: Listen
             if (decodeErrors <= 3) listener.onLog("decode error: ${e.message} ${packet.toHex()}")
             return
         }
+        for (s in pcm) {
+            val v = s.toInt()
+            if (Math.abs(v) > peak) peak = Math.abs(v)
+            sumSquares += v.toDouble() * v
+        }
+        sampleCount += pcm.size
         when (mode) {
             Mode.RECOGNIZE -> recognizer.write(pcm)
             Mode.RECORD -> for (s in pcm) {
@@ -169,5 +185,7 @@ class VoiceController(private val context: Context, private val listener: Listen
         private const val PACKET_MS = 5L
     }
 }
+
+private fun dbfs(amplitude: Double): Double = 20 * Math.log10(maxOf(amplitude, 1.0) / 32768.0)
 
 fun ByteArray.toHex(): String = joinToString(" ") { "%02x".format(it) }
