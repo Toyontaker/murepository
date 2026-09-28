@@ -128,7 +128,9 @@ class MainActivity : Activity(), VoiceController.Listener {
     }
 
     private fun play() {
-        val pcm = lastRecording ?: return
+        val recorded = lastRecording ?: return
+        // Lead-in silence: the speaker path takes a moment to wake up and would clip the start.
+        val pcm = ByteArray(PLAYBACK_LEAD_IN_BYTES) + recorded
         track?.release()
         val t = AudioTrack.Builder()
             .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).build())
@@ -189,6 +191,7 @@ class MainActivity : Activity(), VoiceController.Listener {
 
     companion object {
         private const val SAMPLE_RATE = 16000
+        private const val PLAYBACK_LEAD_IN_BYTES = SAMPLE_RATE * 2 * 300 / 1000
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.RECORD_AUDIO)
     }
 }

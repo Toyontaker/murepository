@@ -14,7 +14,7 @@ class Settings(context: Context) {
         set(value) = prefs.edit().putString(KEY_LANGUAGE, value).apply()
 
     var preferOffline: Boolean
-        get() = prefs.getBoolean(KEY_OFFLINE, false)
+        get() = prefs.getBoolean(KEY_OFFLINE, true)
         set(value) = prefs.edit().putBoolean(KEY_OFFLINE, value).apply()
 
     private companion object {

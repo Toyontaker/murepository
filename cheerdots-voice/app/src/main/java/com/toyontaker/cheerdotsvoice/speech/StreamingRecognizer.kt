@@ -5,6 +5,8 @@ import android.content.Intent
 import android.media.AudioFormat
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
@@ -31,6 +33,7 @@ class StreamingRecognizer(
         fun onLog(message: String) {}
     }
 
+    private val main = Handler(Looper.getMainLooper())
     private var recognizer: SpeechRecognizer? = null
     private var output: OutputStream? = null
 
@@ -41,6 +44,9 @@ class StreamingRecognizer(
      */
     private var input: ParcelFileDescriptor? = null
     private val writer = Executors.newSingleThreadExecutor()
+
+    /** Latest partial hypothesis; used when the final result comes back empty. */
+    private var lastPartial = ""
 
     val isActive get() = recognizer != null
 
@@ -54,6 +60,7 @@ class StreamingRecognizer(
             listener.onError("音声認識サービスが見つかりません")
             return
         }
+        lastPartial = ""
         val pipe = ParcelFileDescriptor.createPipe()
         input = pipe[0]
         output = ParcelFileDescriptor.AutoCloseOutputStream(pipe[1])
@@ -68,18 +75,30 @@ class StreamingRecognizer(
         listener.onLog("recognizer: ${if (onDevice) "on-device" else "default (${defaultServiceName()})"}")
         sr.setRecognitionListener(object : RecognitionListener {
             override fun onPartialResults(partialResults: Bundle) {
-                best(partialResults)?.let { listener.onPartial(it) }
+                if (recognizer !== sr) return
+                val text = best(partialResults)
+                if (!text.isNullOrEmpty()) {
+                    lastPartial = text
+                    listener.onPartial(text)
+                }
             }
 
             override fun onResults(results: Bundle) {
+                if (recognizer !== sr) return
                 val text = best(results).orEmpty()
-                release()
-                listener.onFinal(text)
+                listener.onLog("final: \"$text\" (partial: \"$lastPartial\")")
+                deliverFinal(text.ifEmpty { lastPartial })
             }
 
             override fun onError(error: Int) {
-                release()
-                listener.onError(describeError(error))
+                if (recognizer !== sr) return
+                listener.onLog("recognizer error $error (partial: \"$lastPartial\")")
+                if (lastPartial.isNotEmpty()) {
+                    deliverFinal(lastPartial)
+                } else {
+                    release()
+                    listener.onError(describeError(error))
+                }
             }
 
             override fun onReadyForSpeech(params: Bundle?) {}
@@ -124,26 +143,23 @@ class StreamingRecognizer(
         }
     }
 
-    /** Ends the audio stream; the final result arrives via [Listener.onFinal]. */
+    /**
+     * Ends speech input; the final result arrives via [Listener.onFinal].
+     *
+     * Uses stopListening() rather than closing the audio stream: closing it
+     * makes recognition services treat the session as aborted and return an
+     * empty result.
+     */
     fun finish() {
-        val out = output ?: return
-        output = null
-        writer.execute {
-            try {
-                out.close()
-            } catch (_: IOException) {
-            }
-        }
+        val sr = recognizer ?: return
+        sr.stopListening()
+        main.removeCallbacks(finalTimeout)
+        main.postDelayed(finalTimeout, FINAL_TIMEOUT_MS)
     }
 
     fun cancel() {
-        finish()
-        recognizer?.let {
-            it.cancel()
-            it.destroy()
-        }
-        recognizer = null
-        closeInput()
+        recognizer?.cancel()
+        release()
     }
 
     fun shutdown() {
@@ -151,14 +167,30 @@ class StreamingRecognizer(
         writer.shutdown()
     }
 
-    private fun release() {
-        finish()
-        recognizer?.destroy()
-        recognizer = null
-        closeInput()
+    private val finalTimeout = Runnable {
+        if (recognizer == null) return@Runnable
+        listener.onLog("no final result in time (partial: \"$lastPartial\")")
+        deliverFinal(lastPartial)
     }
 
-    private fun closeInput() {
+    private fun deliverFinal(text: String) {
+        release()
+        listener.onFinal(text)
+    }
+
+    private fun release() {
+        main.removeCallbacks(finalTimeout)
+        output?.let { out ->
+            writer.execute {
+                try {
+                    out.close()
+                } catch (_: IOException) {
+                }
+            }
+        }
+        output = null
+        recognizer?.destroy()
+        recognizer = null
         try {
             input?.close()
         } catch (_: IOException) {
@@ -184,5 +216,9 @@ class StreamingRecognizer(
         SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED -> "この言語は未対応です"
         SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE -> "言語データがありません"
         else -> "音声認識エラー ($error)"
+    }
+
+    private companion object {
+        const val FINAL_TIMEOUT_MS = 4000L
     }
 }
