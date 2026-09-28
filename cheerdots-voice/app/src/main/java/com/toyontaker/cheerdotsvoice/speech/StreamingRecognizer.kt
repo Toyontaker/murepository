@@ -28,10 +28,18 @@ class StreamingRecognizer(
         fun onPartial(text: String)
         fun onFinal(text: String)
         fun onError(message: String)
+        fun onLog(message: String) {}
     }
 
     private var recognizer: SpeechRecognizer? = null
     private var output: OutputStream? = null
+
+    /**
+     * Read end handed to the recognizer. startListening() is asynchronous (it
+     * first binds to the recognition service), so this must stay open until the
+     * session is over, or the service receives a closed audio source.
+     */
+    private var input: ParcelFileDescriptor? = null
     private val writer = Executors.newSingleThreadExecutor()
 
     val isActive get() = recognizer != null
@@ -47,15 +55,17 @@ class StreamingRecognizer(
             return
         }
         val pipe = ParcelFileDescriptor.createPipe()
-        val out = ParcelFileDescriptor.AutoCloseOutputStream(pipe[1])
-        output = out
+        input = pipe[0]
+        output = ParcelFileDescriptor.AutoCloseOutputStream(pipe[1])
 
-        val sr = if (preferOffline && SpeechRecognizer.isOnDeviceRecognitionAvailable(context)) {
+        val onDevice = preferOffline && SpeechRecognizer.isOnDeviceRecognitionAvailable(context)
+        val sr = if (onDevice) {
             SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
         } else {
             SpeechRecognizer.createSpeechRecognizer(context)
         }
         recognizer = sr
+        listener.onLog("recognizer: ${if (onDevice) "on-device" else "default (${defaultServiceName()})"}")
         sr.setRecognitionListener(object : RecognitionListener {
             override fun onPartialResults(partialResults: Bundle) {
                 best(partialResults)?.let { listener.onPartial(it) }
@@ -83,6 +93,7 @@ class StreamingRecognizer(
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, language)
+            putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName)
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
             putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE, pipe[0])
             putExtra(RecognizerIntent.EXTRA_AUDIO_SOURCE_CHANNEL_COUNT, 1)
@@ -93,8 +104,6 @@ class StreamingRecognizer(
             putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 10_000L)
         }
         sr.startListening(intent)
-        // The recognizer holds its own copy of the read end.
-        pipe[0].close()
     }
 
     /** Appends little-endian 16-bit PCM. */
@@ -134,6 +143,7 @@ class StreamingRecognizer(
             it.destroy()
         }
         recognizer = null
+        closeInput()
     }
 
     fun shutdown() {
@@ -145,7 +155,19 @@ class StreamingRecognizer(
         finish()
         recognizer?.destroy()
         recognizer = null
+        closeInput()
     }
+
+    private fun closeInput() {
+        try {
+            input?.close()
+        } catch (_: IOException) {
+        }
+        input = null
+    }
+
+    private fun defaultServiceName(): String? =
+        android.provider.Settings.Secure.getString(context.contentResolver, "voice_recognition_service")
 
     private fun best(bundle: Bundle): String? =
         bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
@@ -157,6 +179,8 @@ class StreamingRecognizer(
         SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "マイク権限がありません（アプリを開いて許可してください）"
         SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "音声認識が使用中です"
         SpeechRecognizer.ERROR_AUDIO -> "音声入力エラー"
+        SpeechRecognizer.ERROR_CLIENT -> "音声認識エラー (5: クライアント)"
+        SpeechRecognizer.ERROR_SERVER, SpeechRecognizer.ERROR_SERVER_DISCONNECTED -> "音声認識サーバーエラー ($error)"
         SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED -> "この言語は未対応です"
         SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE -> "言語データがありません"
         else -> "音声認識エラー ($error)"

@@ -3,6 +3,7 @@ package com.toyontaker.cheerdotsvoice
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import com.toyontaker.cheerdotsvoice.audio.SbcDecoder
 import com.toyontaker.cheerdotsvoice.ble.CheerdotsClient
 import com.toyontaker.cheerdotsvoice.protocol.CheerdotsProtocol
@@ -39,12 +40,16 @@ class VoiceController(private val context: Context, private val listener: Listen
     private var sessionActive = false
     private var packetCount = 0
     private var decodeErrors = 0
+    private var sessionStartedAt = 0L
+    private var firstPacketAt = 0L
+    private var lastPacketAt = 0L
     private val recording = ByteArrayOutputStream()
 
     private val recognizer = StreamingRecognizer(context, object : StreamingRecognizer.Listener {
         override fun onPartial(text: String) = listener.onPartial(text)
         override fun onFinal(text: String) = listener.onFinal(text)
         override fun onError(message: String) = listener.onError(message)
+        override fun onLog(message: String) = listener.onLog(message)
     })
 
     private val client = CheerdotsClient(context, object : CheerdotsClient.Listener {
@@ -98,6 +103,8 @@ class VoiceController(private val context: Context, private val listener: Listen
         sessionActive = true
         packetCount = 0
         decodeErrors = 0
+        sessionStartedAt = SystemClock.elapsedRealtime()
+        firstPacketAt = 0L
         decoder.reset()
         recording.reset()
         if (mode == Mode.RECOGNIZE) {
@@ -111,7 +118,12 @@ class VoiceController(private val context: Context, private val listener: Listen
         main.removeCallbacks(silenceTimeout)
         if (!sessionActive) return
         sessionActive = false
-        listener.onLog("session ended: $packetCount packets, $decodeErrors decode errors")
+        // One packet carries 5 ms of audio; fewer packets than the elapsed time means drops.
+        val expected = if (firstPacketAt == 0L) 0 else (lastPacketAt - firstPacketAt) / PACKET_MS + 1
+        val startDelay = if (firstPacketAt == 0L) -1 else firstPacketAt - sessionStartedAt
+        listener.onLog(
+            "session: $packetCount/$expected packets, first audio after ${startDelay}ms, $decodeErrors decode errors"
+        )
         when (mode) {
             Mode.RECOGNIZE -> recognizer.finish()
             Mode.RECORD -> listener.onRecorded(recording.toByteArray(), CheerdotsProtocol.AUDIO_SAMPLE_RATE)
@@ -122,6 +134,8 @@ class VoiceController(private val context: Context, private val listener: Listen
         if (!sessionActive) startSession()
         armSilenceTimeout()
         packetCount++
+        lastPacketAt = SystemClock.elapsedRealtime()
+        if (firstPacketAt == 0L) firstPacketAt = lastPacketAt
         val pcm = try {
             val frame = CheerdotsProtocol.audioPacketToSbcFrame(packet)
             decoder.decode(frame, blocksOverride = CheerdotsProtocol.AUDIO_SBC_BLOCKS).pcm
@@ -152,6 +166,7 @@ class VoiceController(private val context: Context, private val listener: Listen
     companion object {
         /** Audio arrives every 5 ms while the key is held. */
         private const val SILENCE_TIMEOUT_MS = 600L
+        private const val PACKET_MS = 5L
     }
 }
 

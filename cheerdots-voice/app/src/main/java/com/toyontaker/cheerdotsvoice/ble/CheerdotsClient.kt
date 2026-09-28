@@ -123,6 +123,9 @@ class CheerdotsClient(private val context: Context, private val listener: Listen
                 log("Control service not found - is this a Cheerdots 2?")
                 return
             }
+            // Audio is 200 notifications/s; a short connection interval avoids
+            // losing the first packets while the link is in a slow power-saving interval.
+            g.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
             subscribe(control.getCharacteristic(CheerdotsProtocol.CHAR_EVENTS))
             subscribe(control.getCharacteristic(CheerdotsProtocol.CHAR_AUDIO))
             subscribe(g.getService(CheerdotsProtocol.SERVICE_AUDIO_AUX)?.getCharacteristic(CheerdotsProtocol.CHAR_AUDIO_AUX))
