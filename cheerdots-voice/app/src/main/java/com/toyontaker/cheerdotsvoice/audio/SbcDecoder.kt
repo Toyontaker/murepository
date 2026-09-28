@@ -20,7 +20,7 @@ class SbcDecoder {
 
     // Per-frame scratch state.
     private val scaleFactor = Array(2) { IntArray(8) }
-    private val sbSample = Array(16) { Array(2) { IntArray(8) } }
+    private val sbSample = Array(MAX_BLOCKS) { Array(2) { IntArray(8) } }
     private val bits = Array(2) { IntArray(8) }
 
     fun reset() {
@@ -30,14 +30,18 @@ class SbcDecoder {
     /**
      * Decodes the SBC frame at the start of [data]. PCM for multiple channels is
      * returned interleaved.
+     *
+     * [blocksOverride], when non-zero, replaces the block count from the header.
+     * Some devices (like mSBC) use block counts the 2-bit header field cannot express.
      */
-    fun decode(data: ByteArray, off: Int = 0, len: Int = data.size - off): Frame {
+    fun decode(data: ByteArray, off: Int = 0, len: Int = data.size - off, blocksOverride: Int = 0): Frame {
         if (len < 4) throw DecodeException("frame too short")
         fun u8(i: Int) = data[off + i].toInt() and 0xFF
         if (u8(0) != SYNCWORD) throw DecodeException("bad syncword")
 
         val frequency = (u8(1) shr 6) and 0x03
-        val blocks = 4 * (((u8(1) shr 4) and 0x03) + 1)
+        val blocks = if (blocksOverride > 0) blocksOverride else 4 * (((u8(1) shr 4) and 0x03) + 1)
+        if (blocks > MAX_BLOCKS) throw DecodeException("too many blocks")
         val mode = (u8(1) shr 2) and 0x03
         val channels = if (mode == MODE_MONO) 1 else 2
         val allocation = (u8(1) shr 1) and 0x01
@@ -329,6 +333,7 @@ class SbcDecoder {
 
     companion object {
         const val SYNCWORD = 0x9C
+        const val MAX_BLOCKS = 16
 
         private const val MODE_MONO = 0
         private const val MODE_DUAL = 1

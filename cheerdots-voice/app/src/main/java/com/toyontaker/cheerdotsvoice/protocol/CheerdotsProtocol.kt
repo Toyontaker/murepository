@@ -49,13 +49,17 @@ object CheerdotsProtocol {
     val HANDSHAKE = listOf(CMD_SET_OS_TYPE, CMD_GET_STATUS)
 
     /**
-     * Each audio notification is one 20-byte SBC frame with the constant 3-byte
-     * header (sync 0x9C, 16 kHz / 8 blocks / mono / loudness / 8 subbands,
-     * bitpool 12) stripped. The first byte is the frame CRC; the last 3 bytes
-     * are not part of the frame.
+     * Each audio notification is one SBC frame with its constant 3-byte header
+     * (sync 0x9C, 0x11, bitpool 12) stripped; the first byte is the frame CRC.
+     *
+     * The frames use 10 blocks, which the SBC header cannot express (its 0x11
+     * says 8 blocks). The official app ignores the header and decodes with a
+     * fixed configuration: 16 kHz, 10 blocks, mono, loudness, 8 subbands,
+     * bitpool 12 -> 23-byte frames, 80 samples (5 ms) each.
      */
     const val AUDIO_PACKET_SIZE = 20
     val SBC_HEADER = byteArrayOf(0x9C.toByte(), 0x11, 0x0C)
+    const val AUDIO_SBC_BLOCKS = 10
     const val AUDIO_SAMPLE_RATE = 16000
 
     /** Rebuilds a complete SBC frame from one audio notification. */

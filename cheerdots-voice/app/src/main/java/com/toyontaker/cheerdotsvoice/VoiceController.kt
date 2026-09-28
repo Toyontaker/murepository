@@ -123,7 +123,8 @@ class VoiceController(private val context: Context, private val listener: Listen
         armSilenceTimeout()
         packetCount++
         val pcm = try {
-            decoder.decode(CheerdotsProtocol.audioPacketToSbcFrame(packet)).pcm
+            val frame = CheerdotsProtocol.audioPacketToSbcFrame(packet)
+            decoder.decode(frame, blocksOverride = CheerdotsProtocol.AUDIO_SBC_BLOCKS).pcm
         } catch (e: SbcDecoder.DecodeException) {
             decodeErrors++
             if (decodeErrors <= 3) listener.onLog("decode error: ${e.message} ${packet.toHex()}")
@@ -149,7 +150,7 @@ class VoiceController(private val context: Context, private val listener: Listen
     }
 
     companion object {
-        /** Audio arrives every 4 ms while the key is held. */
+        /** Audio arrives every 5 ms while the key is held. */
         private const val SILENCE_TIMEOUT_MS = 600L
     }
 }
