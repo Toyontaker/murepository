@@ -49,6 +49,18 @@ class CheerdotsImeService : InputMethodService(), VoiceController.Listener {
         return view
     }
 
+    /**
+     * Cheerdots itself is a Bluetooth HID device, so Android treats it as a
+     * hardware keyboard and the default implementation would hide this view.
+     */
+    override fun onEvaluateInputViewShown(): Boolean {
+        super.onEvaluateInputViewShown()
+        return true
+    }
+
+    /** The view is a small strip; never take over the screen in landscape. */
+    override fun onEvaluateFullscreenMode(): Boolean = false
+
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         if (controller.connectionState == CheerdotsClient.State.DISCONNECTED) connect()
