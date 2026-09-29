@@ -109,6 +109,10 @@ class CheerdotsImeService : InputMethodService(), VoiceController.Listener {
         previewView?.text = ""
     }
 
+    override fun onProcessing() {
+        statusView?.setText(R.string.status_processing)
+    }
+
     override fun onPartial(text: String) {
         previewView?.text = text
         currentInputConnection?.setComposingText(text, 1)

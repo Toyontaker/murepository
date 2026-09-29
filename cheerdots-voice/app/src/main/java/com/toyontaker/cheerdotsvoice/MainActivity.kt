@@ -14,8 +14,12 @@ import android.os.Bundle
 import android.provider.Settings as SystemSettings
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
+import android.view.View
 import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.RadioGroup
 import android.widget.TextView
+import android.widget.Toast
 import com.toyontaker.cheerdotsvoice.ble.CheerdotsClient
 
 /**
@@ -60,6 +64,7 @@ class MainActivity : Activity(), VoiceController.Listener {
             isChecked = settings.preferOffline
             setOnCheckedChangeListener { _, checked -> settings.preferOffline = checked }
         }
+        setUpEngineSettings()
 
         showDevice()
         onConnectionChanged(CheerdotsClient.State.DISCONNECTED)
@@ -76,6 +81,48 @@ class MainActivity : Activity(), VoiceController.Listener {
         controller.release()
         track?.release()
         super.onDestroy()
+    }
+
+    private fun setUpEngineSettings() {
+        val offline = findViewById<CheckBox>(R.id.offline)
+        val geminiSettings = findViewById<View>(R.id.gemini_settings)
+        fun showFor(engine: Settings.Engine) {
+            offline.visibility = if (engine == Settings.Engine.ANDROID) View.VISIBLE else View.GONE
+            geminiSettings.visibility = if (engine == Settings.Engine.GEMINI) View.VISIBLE else View.GONE
+        }
+        findViewById<RadioGroup>(R.id.engine).apply {
+            check(if (settings.engine == Settings.Engine.GEMINI) R.id.engine_gemini else R.id.engine_android)
+            setOnCheckedChangeListener { _, id ->
+                settings.engine = if (id == R.id.engine_gemini) Settings.Engine.GEMINI else Settings.Engine.ANDROID
+                showFor(settings.engine)
+            }
+        }
+        showFor(settings.engine)
+
+        val key = findViewById<EditText>(R.id.gemini_key)
+        key.setText(settings.geminiApiKey)
+        key.setOnFocusChangeListener { _, hasFocus -> if (!hasFocus) saveGeminiKey(key) }
+        key.setOnEditorActionListener { _, _, _ ->
+            saveGeminiKey(key)
+            key.clearFocus()
+            false
+        }
+        findViewById<CheckBox>(R.id.gemini_smart).apply {
+            isChecked = settings.geminiSmart
+            setOnCheckedChangeListener { _, checked -> settings.geminiSmart = checked }
+        }
+    }
+
+    private fun saveGeminiKey(field: EditText) {
+        val value = field.text.toString().trim()
+        if (value == settings.geminiApiKey) return
+        settings.geminiApiKey = value
+        Toast.makeText(this, R.string.gemini_key_saved, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onPause() {
+        saveGeminiKey(findViewById(R.id.gemini_key))
+        super.onPause()
     }
 
     private fun hasPermissions() = REQUIRED_PERMISSIONS.all { checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }
@@ -167,6 +214,10 @@ class MainActivity : Activity(), VoiceController.Listener {
 
     override fun onSessionStarted() {
         resultView.setText(R.string.status_listening)
+    }
+
+    override fun onProcessing() {
+        resultView.setText(R.string.status_processing)
     }
 
     override fun onPartial(text: String) {

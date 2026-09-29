@@ -11,8 +11,8 @@ android {
         applicationId = "com.toyontaker.cheerdotsvoice"
         minSdk = 31
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.1.5"
+        versionCode = 7
+        versionName = "0.2.0"
     }
 
     buildTypes {
@@ -33,4 +33,6 @@ android {
 
 dependencies {
     testImplementation("junit:junit:4.13.2")
+    // Real org.json for JVM unit tests; the android.jar version is a stub.
+    testImplementation("org.json:json:20240303")
 }

@@ -7,22 +7,28 @@ import android.os.SystemClock
 import com.toyontaker.cheerdotsvoice.audio.SbcDecoder
 import com.toyontaker.cheerdotsvoice.ble.CheerdotsClient
 import com.toyontaker.cheerdotsvoice.protocol.CheerdotsProtocol
+import com.toyontaker.cheerdotsvoice.speech.GeminiTranscriber
 import com.toyontaker.cheerdotsvoice.speech.StreamingRecognizer
 import java.io.ByteArrayOutputStream
+import java.util.concurrent.Executors
 
 /**
  * Turns Cheerdots voice-key presses into speech sessions.
  *
  * A session starts on the voice-key-down event or on the first audio packet,
  * and ends on the key-up event or when audio stops arriving. Depending on
- * [mode], the decoded audio goes to the speech recognizer or into a PCM buffer
- * (for the recording test). Everything runs on the main thread.
+ * [mode] and the selected engine, the decoded audio is streamed to Android's
+ * speech recognizer, or buffered and sent to Gemini when the key is released,
+ * or just buffered (for the recording test). Callbacks run on the main thread.
  */
 class VoiceController(private val context: Context, private val listener: Listener) {
 
     interface Listener {
         fun onConnectionChanged(state: CheerdotsClient.State) {}
         fun onSessionStarted() {}
+
+        /** Audio is complete and being transcribed (Gemini). */
+        fun onProcessing() {}
         fun onPartial(text: String) {}
         fun onFinal(text: String) {}
         fun onRecorded(pcm: ByteArray, sampleRate: Int) {}
@@ -47,6 +53,10 @@ class VoiceController(private val context: Context, private val listener: Listen
     private var sumSquares = 0.0
     private var sampleCount = 0L
     private val recording = ByteArrayOutputStream()
+    private var sessionEngine = Settings.Engine.ANDROID
+    private val gemini = GeminiTranscriber()
+    private val geminiExecutor = Executors.newSingleThreadExecutor()
+    private var geminiRequest = 0
 
     private val recognizer = StreamingRecognizer(context, object : StreamingRecognizer.Listener {
         override fun onPartial(text: String) = listener.onPartial(text)
@@ -99,7 +109,12 @@ class VoiceController(private val context: Context, private val listener: Listen
     fun release() {
         disconnect()
         recognizer.shutdown()
+        geminiRequest++
+        geminiExecutor.shutdown()
     }
+
+    /** Buffer the session's PCM instead of streaming it. */
+    private val buffering get() = mode == Mode.RECORD || sessionEngine == Settings.Engine.GEMINI
 
     private fun startSession() {
         if (sessionActive) return
@@ -113,7 +128,8 @@ class VoiceController(private val context: Context, private val listener: Listen
         sampleCount = 0L
         decoder.reset()
         recording.reset()
-        if (mode == Mode.RECOGNIZE) {
+        sessionEngine = settings.engine
+        if (mode == Mode.RECOGNIZE && sessionEngine == Settings.Engine.ANDROID) {
             recognizer.start(settings.language, CheerdotsProtocol.AUDIO_SAMPLE_RATE, settings.preferOffline)
         }
         listener.onSessionStarted()
@@ -134,9 +150,42 @@ class VoiceController(private val context: Context, private val listener: Listen
             val rms = Math.sqrt(sumSquares / sampleCount)
             listener.onLog("level: peak %.0f dBFS, rms %.0f dBFS".format(dbfs(peak.toDouble()), dbfs(rms)))
         }
-        when (mode) {
-            Mode.RECOGNIZE -> recognizer.finish()
-            Mode.RECORD -> listener.onRecorded(recording.toByteArray(), CheerdotsProtocol.AUDIO_SAMPLE_RATE)
+        when {
+            mode == Mode.RECORD -> listener.onRecorded(recording.toByteArray(), CheerdotsProtocol.AUDIO_SAMPLE_RATE)
+            sessionEngine == Settings.Engine.GEMINI -> transcribeWithGemini(recording.toByteArray())
+            else -> recognizer.finish()
+        }
+    }
+
+    private fun transcribeWithGemini(pcm: ByteArray) {
+        val rate = CheerdotsProtocol.AUDIO_SAMPLE_RATE
+        if (pcm.size < rate * 2 * MIN_GEMINI_MS / 1000) {
+            listener.onLog("gemini: too short, skipped")
+            listener.onFinal("")
+            return
+        }
+        val request = ++geminiRequest
+        val language = settings.language
+        val smart = settings.geminiSmart
+        val apiKey = settings.geminiApiKey
+        listener.onProcessing()
+        val startedAt = SystemClock.elapsedRealtime()
+        geminiExecutor.execute {
+            val result = runCatching { gemini.transcribe(pcm, rate, language, smart, apiKey) }
+            val elapsed = SystemClock.elapsedRealtime() - startedAt
+            main.post {
+                if (request != geminiRequest) return@post
+                result.fold(
+                    onSuccess = {
+                        listener.onLog("gemini: ${elapsed}ms \"$it\"")
+                        listener.onFinal(it)
+                    },
+                    onFailure = {
+                        listener.onLog("gemini error: ${it.message}")
+                        listener.onError(it.message ?: "Gemini エラー")
+                    },
+                )
+            }
         }
     }
 
@@ -160,12 +209,13 @@ class VoiceController(private val context: Context, private val listener: Listen
             sumSquares += v.toDouble() * v
         }
         sampleCount += pcm.size
-        when (mode) {
-            Mode.RECOGNIZE -> recognizer.write(pcm)
-            Mode.RECORD -> for (s in pcm) {
+        if (buffering) {
+            for (s in pcm) {
                 recording.write(s.toInt())
                 recording.write(s.toInt() shr 8)
             }
+        } else {
+            recognizer.write(pcm)
         }
     }
 
@@ -183,6 +233,7 @@ class VoiceController(private val context: Context, private val listener: Listen
         /** Audio arrives every 5 ms while the key is held. */
         private const val SILENCE_TIMEOUT_MS = 600L
         private const val PACKET_MS = 5L
+        private const val MIN_GEMINI_MS = 300
     }
 }
 

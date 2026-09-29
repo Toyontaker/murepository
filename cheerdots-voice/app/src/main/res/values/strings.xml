@@ -7,6 +7,7 @@
     <string name="status_connecting">Cheerdotsに接続中…</string>
     <string name="status_disconnected">未接続</string>
     <string name="status_listening">聞き取り中…</string>
+    <string name="status_processing">文字起こし中…</string>
     <string name="status_no_device">アプリを開いてCheerdotsを選択してください</string>
 
     <string name="step1">1. 権限とデバイス</string>
@@ -24,6 +25,12 @@
     <string name="test_recognize">認識テスト</string>
     <string name="play">もう一度再生</string>
     <string name="prefer_offline">オフライン認識を優先（対応端末のみ）</string>
+    <string name="engine_title">認識エンジン</string>
+    <string name="engine_android">Android標準（Google音声認識・無料）</string>
+    <string name="engine_gemini">Gemini 3.5 Transcribe（APIキー・従量課金）</string>
+    <string name="gemini_key_hint">Gemini APIキー（Google AI Studioで取得）</string>
+    <string name="gemini_smart">スマート文字起こし（フィラー・言い直しを除去）</string>
+    <string name="gemini_key_saved">APIキーを保存しました</string>
     <string name="hold_key">Cheerdotsの音声キーを押しながら話してください</string>
     <string name="recorded_fmt">%1$.1f 秒録音しました（再生中）</string>
     <string name="empty_result">（認識結果なし）</string>
