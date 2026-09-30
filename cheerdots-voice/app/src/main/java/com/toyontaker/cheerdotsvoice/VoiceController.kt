@@ -9,6 +9,7 @@ import com.toyontaker.cheerdotsvoice.ble.CheerdotsClient
 import com.toyontaker.cheerdotsvoice.protocol.CheerdotsProtocol
 import com.toyontaker.cheerdotsvoice.speech.GeminiTranscriber
 import com.toyontaker.cheerdotsvoice.speech.StreamingRecognizer
+import com.toyontaker.cheerdotsvoice.speech.TextRefiner
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
 
@@ -19,7 +20,8 @@ import java.util.concurrent.Executors
  * and ends on the key-up event or when audio stops arriving. Depending on
  * [mode] and the selected engine, the decoded audio is streamed to Android's
  * speech recognizer, or buffered and sent to Gemini when the key is released,
- * or just buffered (for the recording test). Callbacks run on the main thread.
+ * or just buffered (for the recording test). Final transcripts are optionally
+ * cleaned up by an LLM ([TextRefiner]). Callbacks run on the main thread.
  */
 class VoiceController(private val context: Context, private val listener: Listener) {
 
@@ -27,8 +29,8 @@ class VoiceController(private val context: Context, private val listener: Listen
         fun onConnectionChanged(state: CheerdotsClient.State) {}
         fun onSessionStarted() {}
 
-        /** Audio is complete and being transcribed (Gemini). */
-        fun onProcessing() {}
+        /** Waiting for a remote step: transcription (Gemini) or LLM clean-up. */
+        fun onProcessing(stage: Stage) {}
         fun onPartial(text: String) {}
         fun onFinal(text: String) {}
         fun onRecorded(pcm: ByteArray, sampleRate: Int) {}
@@ -37,6 +39,11 @@ class VoiceController(private val context: Context, private val listener: Listen
     }
 
     enum class Mode { RECOGNIZE, RECORD }
+
+    enum class Stage { TRANSCRIBING, REFINING }
+
+    /** Supplies where the text will be inserted (the keyboard's input field), for LLM context. */
+    var inputContextProvider: (() -> TextRefiner.InputContext?)? = null
 
     var mode = Mode.RECOGNIZE
 
@@ -55,12 +62,15 @@ class VoiceController(private val context: Context, private val listener: Listen
     private val recording = ByteArrayOutputStream()
     private var sessionEngine = Settings.Engine.ANDROID
     private val gemini = GeminiTranscriber()
-    private val geminiExecutor = Executors.newSingleThreadExecutor()
-    private var geminiRequest = 0
+    private val refiner = TextRefiner()
+    private val worker = Executors.newSingleThreadExecutor()
+
+    /** Incremented per remote request; results of superseded requests are dropped. */
+    private var requestSeq = 0
 
     private val recognizer = StreamingRecognizer(context, object : StreamingRecognizer.Listener {
         override fun onPartial(text: String) = listener.onPartial(text)
-        override fun onFinal(text: String) = listener.onFinal(text)
+        override fun onFinal(text: String) = deliverFinal(text)
         override fun onError(message: String) = listener.onError(message)
         override fun onLog(message: String) = listener.onLog(message)
     })
@@ -109,8 +119,8 @@ class VoiceController(private val context: Context, private val listener: Listen
     fun release() {
         disconnect()
         recognizer.shutdown()
-        geminiRequest++
-        geminiExecutor.shutdown()
+        requestSeq++
+        worker.shutdown()
     }
 
     /** Buffer the session's PCM instead of streaming it. */
@@ -164,25 +174,66 @@ class VoiceController(private val context: Context, private val listener: Listen
             listener.onFinal("")
             return
         }
-        val request = ++geminiRequest
+        val request = ++requestSeq
         val language = settings.language
         val smart = settings.geminiSmart
         val apiKey = settings.geminiApiKey
-        listener.onProcessing()
+        listener.onProcessing(Stage.TRANSCRIBING)
         val startedAt = SystemClock.elapsedRealtime()
-        geminiExecutor.execute {
+        worker.execute {
             val result = runCatching { gemini.transcribe(pcm, rate, language, smart, apiKey) }
             val elapsed = SystemClock.elapsedRealtime() - startedAt
             main.post {
-                if (request != geminiRequest) return@post
+                if (request != requestSeq) return@post
                 result.fold(
                     onSuccess = {
                         listener.onLog("gemini: ${elapsed}ms \"$it\"")
-                        listener.onFinal(it)
+                        deliverFinal(it)
                     },
                     onFailure = {
                         listener.onLog("gemini error: ${it.message}")
                         listener.onError(it.message ?: "Gemini エラー")
+                    },
+                )
+            }
+        }
+    }
+
+    /** Hands a final transcript to the listener, after LLM clean-up when enabled. */
+    private fun deliverFinal(raw: String) {
+        if (!settings.refineEnabled || raw.isBlank()) {
+            listener.onFinal(raw)
+            return
+        }
+        val field = runCatching { inputContextProvider?.invoke() }.getOrNull()
+        val isPrivate = field?.private == true
+        val refineRequest = TextRefiner.Request(
+            transcript = raw,
+            systemPrompt = settings.refinePrompt,
+            model = settings.refineModel,
+            context = field.takeIf { settings.refineUseFieldContext && !isPrivate },
+            history = settings.history(),
+            userNotes = settings.userNotes,
+        )
+        val apiKey = settings.geminiApiKey
+        val request = ++requestSeq
+        listener.onProcessing(Stage.REFINING)
+        val startedAt = SystemClock.elapsedRealtime()
+        worker.execute {
+            val result = runCatching { refiner.refine(refineRequest, apiKey) }
+            val elapsed = SystemClock.elapsedRealtime() - startedAt
+            main.post {
+                if (request != requestSeq) return@post
+                result.fold(
+                    onSuccess = {
+                        listener.onLog("refine: ${elapsed}ms \"$raw\" -> \"$it\"")
+                        if (!isPrivate) settings.addHistory(it)
+                        listener.onFinal(it)
+                    },
+                    onFailure = {
+                        // Fall back to the unrefined transcript rather than losing the dictation.
+                        listener.onLog("refine error (raw text used): ${it.message}")
+                        listener.onFinal(raw)
                     },
                 )
             }

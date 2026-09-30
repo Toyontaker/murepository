@@ -1,12 +1,14 @@
 package com.toyontaker.cheerdotsvoice
 
 import android.inputmethodservice.InputMethodService
+import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.TextView
 import com.toyontaker.cheerdotsvoice.ble.CheerdotsClient
+import com.toyontaker.cheerdotsvoice.speech.TextRefiner
 
 /**
  * Keyboard that types what is spoken into the Cheerdots microphone.
@@ -22,6 +24,23 @@ class CheerdotsImeService : InputMethodService(), VoiceController.Listener {
     override fun onCreate() {
         super.onCreate()
         controller = VoiceController(this, this)
+        controller.inputContextProvider = ::currentFieldContext
+    }
+
+    /** Describes the focused field for LLM context; private fields expose nothing. */
+    private fun currentFieldContext(): TextRefiner.InputContext? {
+        val info = currentInputEditorInfo ?: return null
+        val variation = info.inputType and InputType.TYPE_MASK_VARIATION
+        val cls = info.inputType and InputType.TYPE_MASK_CLASS
+        val password = (cls == InputType.TYPE_CLASS_TEXT && variation in PASSWORD_VARIATIONS) ||
+            (cls == InputType.TYPE_CLASS_NUMBER && variation == InputType.TYPE_NUMBER_VARIATION_PASSWORD)
+        val incognito = info.imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING != 0
+        if (password || incognito) return TextRefiner.InputContext(private = true)
+        return TextRefiner.InputContext(
+            appPackage = info.packageName,
+            fieldHint = info.hintText?.toString(),
+            textBeforeCursor = currentInputConnection?.getTextBeforeCursor(CONTEXT_CHARS, 0)?.toString(),
+        )
     }
 
     override fun onDestroy() {
@@ -109,8 +128,10 @@ class CheerdotsImeService : InputMethodService(), VoiceController.Listener {
         previewView?.text = ""
     }
 
-    override fun onProcessing() {
-        statusView?.setText(R.string.status_processing)
+    override fun onProcessing(stage: VoiceController.Stage) {
+        statusView?.setText(
+            if (stage == VoiceController.Stage.REFINING) R.string.status_refining else R.string.status_processing
+        )
     }
 
     override fun onPartial(text: String) {
@@ -135,5 +156,14 @@ class CheerdotsImeService : InputMethodService(), VoiceController.Listener {
         finishComposing()
         previewView?.text = message
         showConnection(controller.connectionState)
+    }
+
+    private companion object {
+        const val CONTEXT_CHARS = 1000
+        val PASSWORD_VARIATIONS = setOf(
+            InputType.TYPE_TEXT_VARIATION_PASSWORD,
+            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD,
+            InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD,
+        )
     }
 }

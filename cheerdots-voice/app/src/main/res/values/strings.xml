@@ -8,6 +8,7 @@
     <string name="status_disconnected">未接続</string>
     <string name="status_listening">聞き取り中…</string>
     <string name="status_processing">文字起こし中…</string>
+    <string name="status_refining">AIで整形中…</string>
     <string name="status_no_device">アプリを開いてCheerdotsを選択してください</string>
 
     <string name="step1">1. 権限とデバイス</string>
@@ -31,6 +32,21 @@
     <string name="gemini_key_hint">Gemini APIキー（Google AI Studioで取得）</string>
     <string name="gemini_smart">スマート文字起こし（フィラー・言い直しを除去）</string>
     <string name="gemini_key_saved">APIキーを保存しました</string>
+    <string name="gemini_key_title">Gemini APIキー（Gemini文字起こし・AI整形で使用）</string>
+
+    <string name="step4">4. AI整形（LLM）</string>
+    <string name="refine_description">認識した文章をAIで清書します：フィラー・繰り返しの削除、言い直しの反映、リストの箇条書き化、過去の入力に合わせた文体。</string>
+    <string name="refine_enabled">AI整形を使う</string>
+    <string name="refine_model">モデル</string>
+    <string name="refine_prompt">システムプロンプト</string>
+    <string name="refine_prompt_reset">既定のプロンプトに戻す</string>
+    <string name="refine_use_context">入力欄の既存テキストとアプリ名を文脈として送る（パスワード欄・シークレット入力では送らない）</string>
+    <string name="refine_history_count">文体の参考にする過去の入力数（0〜50）</string>
+    <string name="refine_user_notes">自分について・よく使う用語（任意）</string>
+    <string name="refine_user_notes_hint">例：エンジニア。Kotlin、Cheerdots、Claude Code をよく使う。語尾は「です・ます」。</string>
+    <string name="refine_clear_history">入力履歴を消去（%1$d件）</string>
+    <string name="refine_history_cleared">履歴を消去しました</string>
+    <string name="refine_saved">保存しました</string>
     <string name="hold_key">Cheerdotsの音声キーを押しながら話してください</string>
     <string name="recorded_fmt">%1$.1f 秒録音しました（再生中）</string>
     <string name="empty_result">（認識結果なし）</string>

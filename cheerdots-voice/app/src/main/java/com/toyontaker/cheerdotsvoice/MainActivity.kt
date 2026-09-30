@@ -21,6 +21,7 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import com.toyontaker.cheerdotsvoice.ble.CheerdotsClient
+import com.toyontaker.cheerdotsvoice.speech.TextRefiner
 
 /**
  * Setup and diagnostics: permissions, device selection, keyboard activation,
@@ -65,6 +66,7 @@ class MainActivity : Activity(), VoiceController.Listener {
             setOnCheckedChangeListener { _, checked -> settings.preferOffline = checked }
         }
         setUpEngineSettings()
+        setUpRefineSettings()
 
         showDevice()
         onConnectionChanged(CheerdotsClient.State.DISCONNECTED)
@@ -120,8 +122,59 @@ class MainActivity : Activity(), VoiceController.Listener {
         Toast.makeText(this, R.string.gemini_key_saved, Toast.LENGTH_SHORT).show()
     }
 
+    private lateinit var refineModel: EditText
+    private lateinit var refinePrompt: EditText
+    private lateinit var refineHistoryCount: EditText
+    private lateinit var refineUserNotes: EditText
+
+    private fun setUpRefineSettings() {
+        val section = findViewById<View>(R.id.refine_settings)
+        findViewById<CheckBox>(R.id.refine_enabled).apply {
+            isChecked = settings.refineEnabled
+            section.visibility = if (isChecked) View.VISIBLE else View.GONE
+            setOnCheckedChangeListener { _, checked ->
+                settings.refineEnabled = checked
+                section.visibility = if (checked) View.VISIBLE else View.GONE
+            }
+        }
+        findViewById<CheckBox>(R.id.refine_use_context).apply {
+            isChecked = settings.refineUseFieldContext
+            setOnCheckedChangeListener { _, checked -> settings.refineUseFieldContext = checked }
+        }
+        refineModel = findViewById<EditText>(R.id.refine_model).apply { setText(settings.refineModel) }
+        refinePrompt = findViewById<EditText>(R.id.refine_prompt).apply { setText(settings.refinePrompt) }
+        refineHistoryCount = findViewById<EditText>(R.id.refine_history_count).apply {
+            setText(settings.refineHistoryCount.toString())
+        }
+        refineUserNotes = findViewById<EditText>(R.id.refine_user_notes).apply { setText(settings.userNotes) }
+        for (field in listOf(refineModel, refinePrompt, refineHistoryCount, refineUserNotes)) {
+            field.setOnFocusChangeListener { _, hasFocus -> if (!hasFocus) saveRefineFields() }
+        }
+        findViewById<Button>(R.id.refine_prompt_reset).setOnClickListener {
+            refinePrompt.setText(TextRefiner.DEFAULT_SYSTEM_PROMPT)
+            saveRefineFields()
+        }
+        val clear = findViewById<Button>(R.id.refine_clear_history)
+        clear.text = getString(R.string.refine_clear_history, settings.historySize)
+        clear.setOnClickListener {
+            settings.clearHistory()
+            clear.text = getString(R.string.refine_clear_history, 0)
+            Toast.makeText(this, R.string.refine_history_cleared, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun saveRefineFields() {
+        settings.refineModel = refineModel.text.toString()
+        settings.refinePrompt = refinePrompt.text.toString()
+        settings.refineHistoryCount = refineHistoryCount.text.toString().toIntOrNull() ?: settings.refineHistoryCount
+        settings.userNotes = refineUserNotes.text.toString()
+        refineModel.setText(settings.refineModel)
+        refineHistoryCount.setText(settings.refineHistoryCount.toString())
+    }
+
     override fun onPause() {
         saveGeminiKey(findViewById(R.id.gemini_key))
+        saveRefineFields()
         super.onPause()
     }
 
@@ -216,8 +269,10 @@ class MainActivity : Activity(), VoiceController.Listener {
         resultView.setText(R.string.status_listening)
     }
 
-    override fun onProcessing() {
-        resultView.setText(R.string.status_processing)
+    override fun onProcessing(stage: VoiceController.Stage) {
+        resultView.setText(
+            if (stage == VoiceController.Stage.REFINING) R.string.status_refining else R.string.status_processing
+        )
     }
 
     override fun onPartial(text: String) {

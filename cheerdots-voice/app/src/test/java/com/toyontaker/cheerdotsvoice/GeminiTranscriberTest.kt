@@ -1,5 +1,6 @@
 package com.toyontaker.cheerdotsvoice
 
+import com.toyontaker.cheerdotsvoice.speech.GeminiApi
 import com.toyontaker.cheerdotsvoice.speech.GeminiTranscriber
 import org.json.JSONObject
 import org.junit.Assert.assertArrayEquals
@@ -33,7 +34,7 @@ class GeminiTranscriberTest {
     @Test
     fun parsesOutputText() {
         val response = JSONObject("""{"id":"interactions/abc","status":"completed","output_text":"明日の天気を教えて"}""")
-        assertEquals("明日の天気を教えて", GeminiTranscriber.parseTranscript(response))
+        assertEquals("明日の天気を教えて", GeminiApi.outputText(response))
     }
 
     @Test
@@ -44,12 +45,12 @@ class GeminiTranscriberTest {
                 {"type":"model_output","content":[{"type":"text","text":"明日の"},{"type":"text","text":"天気"}]}
             ]}"""
         )
-        assertEquals("明日の天気", GeminiTranscriber.parseTranscript(response))
+        assertEquals("明日の天気", GeminiApi.outputText(response))
     }
 
     @Test
     fun noTextWhileInProgress() {
-        assertNull(GeminiTranscriber.parseTranscript(JSONObject("""{"id":"interactions/abc","status":"in_progress"}""")))
+        assertNull(GeminiApi.outputText(JSONObject("""{"id":"interactions/abc","status":"in_progress"}""")))
     }
 
     @Test
