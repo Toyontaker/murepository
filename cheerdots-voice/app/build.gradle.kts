@@ -11,8 +11,8 @@ android {
         applicationId = "com.toyontaker.cheerdotsvoice"
         minSdk = 31
         targetSdk = 35
-        versionCode = 9
-        versionName = "0.4.0"
+        versionCode = 10
+        versionName = "0.4.1"
     }
 
     buildTypes {

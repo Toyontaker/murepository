@@ -1,8 +1,12 @@
 package com.toyontaker.cheerdotsvoice
 
+import android.annotation.SuppressLint
 import android.inputmethodservice.InputMethodService
+import android.os.Handler
+import android.os.Looper
 import android.text.InputType
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedTextRequest
@@ -22,6 +26,17 @@ class CheerdotsImeService : InputMethodService(), VoiceController.Listener {
     private var statusView: TextView? = null
     private var previewView: TextView? = null
     private var composing = false
+    private val handler = Handler(Looper.getMainLooper())
+    private var backspaceRepeats = 0
+
+    /** Repeats backspace while the key is held, speeding up after a while. */
+    private val backspaceRepeat: Runnable = object : Runnable {
+        override fun run() {
+            deleteBackward()
+            backspaceRepeats++
+            handler.postDelayed(this, if (backspaceRepeats < FAST_REPEAT_AFTER) REPEAT_INTERVAL_MS else FAST_REPEAT_INTERVAL_MS)
+        }
+    }
     private var undoButton: Button? = null
     private var proofreading = false
 
@@ -60,7 +75,7 @@ class CheerdotsImeService : InputMethodService(), VoiceController.Listener {
         val view = layoutInflater.inflate(R.layout.keyboard, null)
         statusView = view.findViewById(R.id.status)
         previewView = view.findViewById(R.id.preview)
-        view.findViewById<Button>(R.id.key_backspace).setOnClickListener { sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL) }
+        setUpBackspace(view.findViewById(R.id.key_backspace))
         view.findViewById<Button>(R.id.key_space).setOnClickListener { currentInputConnection?.commitText(" ", 1) }
         view.findViewById<Button>(R.id.key_enter).setOnClickListener { sendEnter() }
         view.findViewById<Button>(R.id.key_switch).setOnClickListener {
@@ -100,9 +115,33 @@ class CheerdotsImeService : InputMethodService(), VoiceController.Listener {
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
+        handler.removeCallbacks(backspaceRepeat)
         finishComposing()
         setUndo(null)
         super.onFinishInputView(finishingInput)
+    }
+
+    private fun deleteBackward() = sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL)
+
+    // Touch handling implements key repeat; accessibility clicks still go through the click listener.
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setUpBackspace(key: Button) {
+        key.setOnClickListener { deleteBackward() }
+        key.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    v.isPressed = true
+                    deleteBackward()
+                    backspaceRepeats = 0
+                    handler.postDelayed(backspaceRepeat, REPEAT_START_DELAY_MS)
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    v.isPressed = false
+                    handler.removeCallbacks(backspaceRepeat)
+                }
+            }
+            true
+        }
     }
 
     /** A span of the field's text, in absolute character offsets. */
@@ -278,6 +317,10 @@ class CheerdotsImeService : InputMethodService(), VoiceController.Listener {
     private companion object {
         const val CONTEXT_CHARS = 1000
         const val MAX_PROOFREAD_CHARS = 4000
+        const val REPEAT_START_DELAY_MS = 400L
+        const val REPEAT_INTERVAL_MS = 60L
+        const val FAST_REPEAT_INTERVAL_MS = 25L
+        const val FAST_REPEAT_AFTER = 20
         val PASSWORD_VARIATIONS = setOf(
             InputType.TYPE_TEXT_VARIATION_PASSWORD,
             InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD,
