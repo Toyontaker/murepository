@@ -51,6 +51,13 @@ class Settings(context: Context) {
             .putString(KEY_REFINE_PROMPT, if (value.trim() == TextRefiner.DEFAULT_SYSTEM_PROMPT) "" else value)
             .apply()
 
+    /** System prompt for the proofread button; blank means the built-in default. */
+    var proofreadPrompt: String
+        get() = prefs.getString(KEY_PROOFREAD_PROMPT, null)?.takeIf { it.isNotBlank() } ?: TextRefiner.DEFAULT_PROOFREAD_PROMPT
+        set(value) = prefs.edit()
+            .putString(KEY_PROOFREAD_PROMPT, if (value.trim() == TextRefiner.DEFAULT_PROOFREAD_PROMPT) "" else value)
+            .apply()
+
     /** Send the text already in the input field (before the cursor) as context. */
     var refineUseFieldContext: Boolean
         get() = prefs.getBoolean(KEY_REFINE_CONTEXT, true)
@@ -92,6 +99,7 @@ class Settings(context: Context) {
         const val KEY_REFINE = "refine_enabled"
         const val KEY_REFINE_MODEL = "refine_model"
         const val KEY_REFINE_PROMPT = "refine_prompt"
+        const val KEY_PROOFREAD_PROMPT = "proofread_prompt"
         const val KEY_REFINE_CONTEXT = "refine_use_context"
         const val KEY_REFINE_HISTORY_COUNT = "refine_history_count"
         const val KEY_USER_NOTES = "user_notes"

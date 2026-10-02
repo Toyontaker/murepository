@@ -61,4 +61,24 @@
             android:layout_weight="1.4"
             android:text="@string/key_enter" />
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/key_proofread"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/key_proofread" />
+
+        <Button
+            android:id="@+id/key_undo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/key_undo" />
+    </LinearLayout>
 </LinearLayout>

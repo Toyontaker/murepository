@@ -126,6 +126,7 @@ class MainActivity : Activity(), VoiceController.Listener {
     private lateinit var refinePrompt: EditText
     private lateinit var refineHistoryCount: EditText
     private lateinit var refineUserNotes: EditText
+    private lateinit var proofreadPrompt: EditText
 
     private fun setUpRefineSettings() {
         val section = findViewById<View>(R.id.refine_settings)
@@ -147,7 +148,12 @@ class MainActivity : Activity(), VoiceController.Listener {
             setText(settings.refineHistoryCount.toString())
         }
         refineUserNotes = findViewById<EditText>(R.id.refine_user_notes).apply { setText(settings.userNotes) }
-        for (field in listOf(refineModel, refinePrompt, refineHistoryCount, refineUserNotes)) {
+        proofreadPrompt = findViewById<EditText>(R.id.proofread_prompt).apply { setText(settings.proofreadPrompt) }
+        findViewById<Button>(R.id.proofread_prompt_reset).setOnClickListener {
+            proofreadPrompt.setText(TextRefiner.DEFAULT_PROOFREAD_PROMPT)
+            saveRefineFields()
+        }
+        for (field in listOf(refineModel, refinePrompt, refineHistoryCount, refineUserNotes, proofreadPrompt)) {
             field.setOnFocusChangeListener { _, hasFocus -> if (!hasFocus) saveRefineFields() }
         }
         findViewById<Button>(R.id.refine_prompt_reset).setOnClickListener {
@@ -168,6 +174,7 @@ class MainActivity : Activity(), VoiceController.Listener {
         settings.refinePrompt = refinePrompt.text.toString()
         settings.refineHistoryCount = refineHistoryCount.text.toString().toIntOrNull() ?: settings.refineHistoryCount
         settings.userNotes = refineUserNotes.text.toString()
+        settings.proofreadPrompt = proofreadPrompt.text.toString()
         refineModel.setText(settings.refineModel)
         refineHistoryCount.setText(settings.refineHistoryCount.toString())
     }

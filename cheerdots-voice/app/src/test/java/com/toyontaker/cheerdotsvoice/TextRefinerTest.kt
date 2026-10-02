@@ -70,7 +70,28 @@ class TextRefinerTest {
     }
 
     @Test
+    fun buildsProofreadRequest() {
+        val json = TextRefiner.buildProofreadInteraction("明日わ晴れ", "", "", "語尾はです・ます")
+        assertEquals(TextRefiner.DEFAULT_MODEL, json.getString("model"))
+        assertEquals(TextRefiner.DEFAULT_PROOFREAD_PROMPT, json.getString("system_instruction"))
+        assertEquals(0.0, json.getJSONObject("generation_config").getDouble("temperature"), 1e-9)
+        assertEquals(
+            "<user_notes>\n語尾はです・ます\n</user_notes>\n<text>\n明日わ晴れ\n</text>",
+            json.getString("input"),
+        )
+    }
+
+    @Test
+    fun proofreadWithoutNotesSendsOnlyText() {
+        val json = TextRefiner.buildProofreadInteraction("明日わ晴れ", "カスタム", "gemini-3.8-flash", " ")
+        assertEquals("<text>\n明日わ晴れ\n</text>", json.getString("input"))
+        assertEquals("カスタム", json.getString("system_instruction"))
+        assertEquals("gemini-3.8-flash", json.getString("model"))
+    }
+
+    @Test
     fun stripsWrappingTheModelMayAdd() {
+        assertEquals("明日は晴れ", TextRefiner.stripWrapping("<text>\n明日は晴れ\n</text>"))
         assertEquals("明後日の天気を教えて", TextRefiner.stripWrapping("「明後日の天気を教えて」"))
         assertEquals("明後日の天気を教えて", TextRefiner.stripWrapping("<transcript>\n明後日の天気を教えて\n</transcript>"))
         // Quotes that are part of the text stay.

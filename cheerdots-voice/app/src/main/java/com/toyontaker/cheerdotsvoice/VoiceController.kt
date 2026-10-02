@@ -199,6 +199,23 @@ class VoiceController(private val context: Context, private val listener: Listen
         }
     }
 
+    /** Fixes typos in existing text with the LLM; [onResult] runs on the main thread. */
+    fun proofread(text: String, onResult: (Result<String>) -> Unit) {
+        val prompt = settings.proofreadPrompt
+        val model = settings.refineModel
+        val notes = settings.userNotes
+        val apiKey = settings.geminiApiKey
+        val startedAt = SystemClock.elapsedRealtime()
+        worker.execute {
+            val result = runCatching { refiner.proofread(text, prompt, model, notes, apiKey) }
+            val elapsed = SystemClock.elapsedRealtime() - startedAt
+            main.post {
+                listener.onLog("proofread: ${elapsed}ms ${result.exceptionOrNull()?.message ?: "ok"}")
+                onResult(result)
+            }
+        }
+    }
+
     /** Hands a final transcript to the listener, after LLM clean-up when enabled. */
     private fun deliverFinal(raw: String) {
         if (!settings.refineEnabled || raw.isBlank()) {

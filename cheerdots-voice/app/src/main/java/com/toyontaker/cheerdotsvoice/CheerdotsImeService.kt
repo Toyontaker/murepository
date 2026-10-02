@@ -5,6 +5,8 @@ import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.ExtractedTextRequest
+import android.view.inputmethod.InputConnection
 import android.widget.Button
 import android.widget.TextView
 import com.toyontaker.cheerdotsvoice.ble.CheerdotsClient
@@ -20,6 +22,12 @@ class CheerdotsImeService : InputMethodService(), VoiceController.Listener {
     private var statusView: TextView? = null
     private var previewView: TextView? = null
     private var composing = false
+    private var undoButton: Button? = null
+    private var proofreading = false
+
+    /** What the last proofread replaced, for undo. */
+    private data class Undo(val start: Int, val original: String, val replaced: String)
+    private var undo: Undo? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -64,6 +72,11 @@ class CheerdotsImeService : InputMethodService(), VoiceController.Listener {
             controller.disconnect()
             connect()
         }
+        view.findViewById<Button>(R.id.key_proofread).setOnClickListener { proofread() }
+        undoButton = view.findViewById<Button>(R.id.key_undo).apply {
+            setOnClickListener { undoProofread() }
+            isEnabled = undo != null
+        }
         showConnection(controller.connectionState)
         return view
     }
@@ -88,7 +101,111 @@ class CheerdotsImeService : InputMethodService(), VoiceController.Listener {
 
     override fun onFinishInputView(finishingInput: Boolean) {
         finishComposing()
+        setUndo(null)
         super.onFinishInputView(finishingInput)
+    }
+
+    /** A span of the field's text, in absolute character offsets. */
+    private data class Span(val start: Int, val end: Int, val text: String)
+
+    /** The selection if there is one, otherwise the whole field. */
+    private fun proofreadTarget(ic: InputConnection): Span? {
+        val extracted = ic.getExtractedText(ExtractedTextRequest().apply { hintMaxChars = MAX_PROOFREAD_CHARS * 2 }, 0)
+            ?: return null
+        val text = extracted.text?.toString() ?: return null
+        val offset = extracted.startOffset
+        val selStart = minOf(extracted.selectionStart, extracted.selectionEnd).coerceIn(0, text.length)
+        val selEnd = maxOf(extracted.selectionStart, extracted.selectionEnd).coerceIn(0, text.length)
+        return if (selStart != selEnd) {
+            Span(offset + selStart, offset + selEnd, text.substring(selStart, selEnd))
+        } else {
+            Span(offset, offset + text.length, text)
+        }
+    }
+
+    /** Current text at [start, start + length), or null when it cannot be read. */
+    private fun textAt(ic: InputConnection, start: Int, length: Int): String? {
+        val extracted = ic.getExtractedText(ExtractedTextRequest().apply { hintMaxChars = MAX_PROOFREAD_CHARS * 2 }, 0)
+            ?: return null
+        val text = extracted.text?.toString() ?: return null
+        val from = start - extracted.startOffset
+        if (from < 0 || from + length > text.length) return null
+        return text.substring(from, from + length)
+    }
+
+    private fun replace(ic: InputConnection, start: Int, end: Int, text: String) {
+        ic.beginBatchEdit()
+        ic.finishComposingText()
+        ic.setSelection(start, end)
+        ic.commitText(text, 1)
+        ic.endBatchEdit()
+    }
+
+    private fun proofread() {
+        if (proofreading) return
+        val ic = currentInputConnection ?: return
+        if (currentFieldContext()?.private == true) {
+            previewView?.setText(R.string.proofread_private)
+            return
+        }
+        finishComposing()
+        val target = proofreadTarget(ic)
+        if (target == null) {
+            previewView?.setText(R.string.proofread_unsupported)
+            return
+        }
+        if (target.text.isBlank()) {
+            previewView?.setText(R.string.proofread_empty)
+            return
+        }
+        if (target.text.length > MAX_PROOFREAD_CHARS) {
+            previewView?.text = getString(R.string.proofread_too_long, MAX_PROOFREAD_CHARS)
+            return
+        }
+        proofreading = true
+        statusView?.setText(R.string.status_proofreading)
+        controller.proofread(target.text) { result ->
+            proofreading = false
+            showConnection(controller.connectionState)
+            val fixed = result.getOrElse {
+                previewView?.text = it.message
+                return@proofread
+            }
+            // Keep the original's surrounding whitespace; the model trims it.
+            val lead = target.text.takeWhile { it.isWhitespace() }
+            val trail = target.text.takeLastWhile { it.isWhitespace() }
+            val replacement = lead + fixed.trim() + trail
+            if (replacement == target.text) {
+                previewView?.setText(R.string.proofread_no_changes)
+                return@proofread
+            }
+            val current = currentInputConnection
+            if (current == null || textAt(current, target.start, target.text.length) != target.text) {
+                previewView?.setText(R.string.proofread_changed)
+                return@proofread
+            }
+            replace(current, target.start, target.end, replacement)
+            setUndo(Undo(target.start, target.text, replacement))
+            previewView?.setText(R.string.proofread_done)
+        }
+    }
+
+    private fun undoProofread() {
+        val u = undo ?: return
+        val ic = currentInputConnection ?: return
+        if (textAt(ic, u.start, u.replaced.length) != u.replaced) {
+            previewView?.setText(R.string.proofread_changed)
+            setUndo(null)
+            return
+        }
+        replace(ic, u.start, u.start + u.replaced.length, u.original)
+        setUndo(null)
+        previewView?.setText(R.string.proofread_undone)
+    }
+
+    private fun setUndo(value: Undo?) {
+        undo = value
+        undoButton?.isEnabled = value != null
     }
 
     private fun connect() {
@@ -160,6 +277,7 @@ class CheerdotsImeService : InputMethodService(), VoiceController.Listener {
 
     private companion object {
         const val CONTEXT_CHARS = 1000
+        const val MAX_PROOFREAD_CHARS = 4000
         val PASSWORD_VARIATIONS = setOf(
             InputType.TYPE_TEXT_VARIATION_PASSWORD,
             InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD,

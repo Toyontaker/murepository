@@ -56,4 +56,20 @@
     <string name="key_space">空白</string>
     <string name="key_backspace">⌫</string>
     <string name="key_enter">改行</string>
+    <string name="key_proofread">✎ 校正</string>
+    <string name="key_undo">↶ 元に戻す</string>
+    <string name="status_proofreading">校正中…</string>
+    <string name="proofread_done">校正しました（「元に戻す」で取り消せます）</string>
+    <string name="proofread_no_changes">修正箇所はありませんでした</string>
+    <string name="proofread_undone">元に戻しました</string>
+    <string name="proofread_changed">文章が変更されたため反映しませんでした</string>
+    <string name="proofread_empty">校正する文章がありません</string>
+    <string name="proofread_too_long">長すぎます（%1$d文字まで）。範囲を選択してから校正してください</string>
+    <string name="proofread_unsupported">この入力欄の文章は読み取れません</string>
+    <string name="proofread_private">パスワード欄・シークレット入力では校正できません</string>
+
+    <string name="step5">5. 校正ボタン</string>
+    <string name="proofread_description">キーボードの「✎ 校正」で、入力欄の文章（範囲選択していればその部分）の誤字・変換ミスをAIで直します。モデルとAPIキーはAI整形と共通です。</string>
+    <string name="proofread_prompt">校正のシステムプロンプト</string>
+    <string name="proofread_prompt_reset">既定の校正プロンプトに戻す</string>
 </resources>
