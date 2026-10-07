@@ -1,0 +1,27 @@
+# L1 ミッション定義（運用者が管理する。Skill からは上書きできない）
+mission:
+  id: backoffice-assistant
+  version: 1
+  purpose: >
+    社内バックオフィス業務（経費精算レビュー、ITヘルプデスクの一次対応、
+    業務に必要な Web 調査）を支援する。最終的な承認・支払い・権限変更は人が行う。
+
+  # Skill が1つも有効でないときに使ってよいツール分類
+  default_tool_classes: [read, skill_meta, control]
+
+  # どの Skill でも絶対に許可しない分類
+  forbidden_tool_classes: [credential_access, payment_execute]
+
+  # どの Skill でも人の承認を必須にする分類
+  requires_approval_classes: [destructive]
+
+  # 外部送信（external_send）を許可する宛先ドメイン
+  allowed_recipient_domains: [example.co.jp]
+
+  # この risk_level 以上の Skill を「信頼できない入力を読んだ後」に読み込む場合は承認必須
+  skill_load_approval_risk_level: high
+
+  # カナリアトークン（これが外部向け引数や出力に現れたら即ブロック・アラート）
+  canary_tokens:
+    - CANARY-7f3a9c1e
+    - CANARY-SECRET-PAYROLL-42

@@ -1,0 +1,89 @@
+# OpenTelemetry Collector (contrib distribution) for the agent.
+#
+#  agent --OTLP--> collector --+--> traces backend (all security-relevant traces, sampled rest)
+#                              +--> kafka "agent-security-spans" (real-time feed for the blue team)
+#
+# Components used here (redaction, tail_sampling, kafka) are in otelcol-contrib.
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+
+  # Message content is off by default in ADK; if someone turns it on, keep
+  # it out of the shared backends anyway. Hashes and sec.* attributes stay.
+  redaction:
+    allow_all_keys: true
+    blocked_key_patterns:
+      - "gen_ai\\.input\\.messages"
+      - "gen_ai\\.output\\.messages"
+      - "gen_ai\\.system_instructions"
+    blocked_values:
+      - "sk-ant-[A-Za-z0-9_\\-]{10,}"
+      - "AKIA[0-9A-Z]{16}"
+      - "CANARY-[A-Za-z0-9\\-]+"
+    summary: info
+
+  # Keep every trace that carries a security signal; sample the rest.
+  tail_sampling:
+    decision_wait: 10s
+    policies:
+      - name: policy-not-allow
+        type: string_attribute
+        string_attribute:
+          key: sec.policy.decision
+          values: [deny, needs_approval]
+      - name: canary
+        type: boolean_attribute
+        boolean_attribute: {key: sec.detect.canary_hit, value: true}
+      - name: skill-after-untrusted
+        type: boolean_attribute
+        boolean_attribute: {key: sec.skill.loaded_after_untrusted, value: true}
+      - name: injection-score
+        type: ottl_condition
+        ottl_condition:
+          error_mode: ignore
+          span:
+            - 'attributes["sec.tool.result.injection_score"] >= 0.5'
+      - name: redteam-labelled
+        type: string_attribute
+        string_attribute: {key: sec.test.attack_id, values: [".*"], enabled_regex_matching: true}
+      - name: errors
+        type: status_code
+        status_code: {status_codes: [ERROR]}
+      - name: baseline
+        type: probabilistic
+        probabilistic: {sampling_percentage: 10}
+
+  batch: {}
+
+exporters:
+  otlphttp/backend:
+    endpoint: ${env:TRACES_BACKEND_ENDPOINT}
+  kafka/blueteam:
+    brokers: ["${env:KAFKA_BROKERS}"]
+    traces:
+      topic: agent-security-spans
+      encoding: otlp_json
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    traces/backend:
+      receivers: [otlp]
+      processors: [memory_limiter, redaction, tail_sampling, batch]
+      exporters: [otlphttp/backend]
+    # The blue team sees every span (unsampled) in real time, redacted.
+    traces/blueteam:
+      receivers: [otlp]
+      processors: [memory_limiter, redaction, batch]
+      exporters: [kafka/blueteam]
