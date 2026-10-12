@@ -76,9 +76,15 @@ class DeviceSmokeTest {
 
     @Test fun countingToTheEnd() {
         open("かず")
-        // 1こ を かぞえる(初期は じゅんばん で 1から)
+        // 1こ を かぞえる(初期は じゅんばん で 1から)。どこで 止まったか わかるよう 段階ごとに 待つ
+        rule.waitUntil(5_000) { rule.onAllNodesWithTag("item_0").fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithTag("item_0").performClick()
-        rule.waitUntil(6_000) { rule.onAllNodesWithTag("item_1").fetchSemanticsNodes().isNotEmpty() }
+        // ① タップが 数えられた(「いっこ」の よみが でる)
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("いっこ").fetchSemanticsNodes().isNotEmpty() }
+        // ② おいわいが でた
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("1こ!", substring = true).fetchSemanticsNodes().isNotEmpty() }
+        // ③ 3.5びょう ほどで つぎの 数(2こ)へ(遅い エミュレータでも 間に合うよう 余裕を もつ)
+        rule.waitUntil(15_000) { rule.onAllNodesWithTag("item_1").fetchSemanticsNodes().isNotEmpty() }
         home()
     }
 
