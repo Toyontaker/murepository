@@ -81,7 +81,7 @@ fun TracingScreen(onHome: () -> Unit, autoDemo: Boolean = true) {
     val glyph = remember(strokeData, canvasSize) {
         Glyph(strokeData, canvasSize.width.toFloat(), canvasSize.height.toFloat())
     }
-    val guide = remember(glyph) { StrokeGuide(glyph, density) }
+    val guide = remember(glyph) { if (canvasSize == IntSize.Zero) null else StrokeGuide(glyph, density) }
     val scorer = remember(glyph) { if (canvasSize == IntSize.Zero) null else glyph.scorer() }
 
     // かきじゅん アニメーション(demoStroke が null の ときは とまっている)
@@ -191,7 +191,10 @@ fun TracingScreen(onHome: () -> Unit, autoDemo: Boolean = true) {
                     drawLine(dash, Offset(0f, size.height / 2), Offset(size.width, size.height / 2), 4f)
 
                     // おてほん と 書き順ガイド(つぎに かく 線 = かいた 線の 数 ばんめ)
-                    drawIntoCanvas { guide.draw(it.nativeCanvas, lines.size, demoStroke, demoProgress.value) }
+                    // (画面に でた 直後は 大きさが まだ わからないので、わかってから かく)
+                    if (guide != null) {
+                        drawIntoCanvas { guide.draw(it.nativeCanvas, lines.size, demoStroke, demoProgress.value) }
+                    }
 
                     // こどもが かいた線
                     val strokeWidth = minOf(size.width, size.height) * 0.05f

@@ -38,6 +38,8 @@ class StrokeGuide(private val glyph: Glyph, density: Float) {
      * @param demoStroke アニメーション中の 線(null なら アニメーション していない)
      */
     fun draw(canvas: Canvas, next: Int, demoStroke: Int?, demoProgress: Float) {
+        // 大きさが まだ きまっていない(画面に でた 直後の 1コマめ)ときは なにも かかない
+        if (glyph.width <= 0f || glyph.height <= 0f) return
         glyph.draw(canvas, template)
         val count = glyph.strokes.size
 
@@ -59,8 +61,8 @@ class StrokeGuide(private val glyph: Glyph, density: Float) {
         for (i in 0 until count) {
             val (start, tan) = glyph.posTan(i, 0f)
             val back = glyph.strokeWidth * 0.75f
-            val x = (start.x - tan.x * back).coerceIn(badgeRadius, glyph.width - badgeRadius)
-            val y = (start.y - tan.y * back).coerceIn(badgeRadius, glyph.height - badgeRadius)
+            val x = clamp(start.x - tan.x * back, badgeRadius, glyph.width - badgeRadius)
+            val y = clamp(start.y - tan.y * back, badgeRadius, glyph.height - badgeRadius)
             val active = if (demoStroke != null) i == demoStroke else i == next
             badgeFill.color = when {
                 active -> Color(0xFFE53935).toArgb()
@@ -73,6 +75,9 @@ class StrokeGuide(private val glyph: Glyph, density: Float) {
             canvas.drawText((i + 1).toString(), x, y - (fm.ascent + fm.descent) / 2, badgeText)
         }
     }
+
+    /** min〜max に おさめる。画面が 小さすぎて min > max の ときは まんなかに する(coerceIn は 例外に なる)。 */
+    private fun clamp(v: Float, min: Float, max: Float) = if (min > max) (min + max) / 2 else v.coerceIn(min, max)
 
     /** 線の とちゅうに、すすむ むきの 「>」を かく。 */
     private fun drawArrow(canvas: Canvas, i: Int) {
