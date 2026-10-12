@@ -40,7 +40,10 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toyontaker.manabikko.LocalSpeaker
+import com.toyontaker.manabikko.LocalSfx
+import com.toyontaker.manabikko.Sfx
 import com.toyontaker.manabikko.data.Hiragana
+import com.toyontaker.manabikko.data.Katakana
 import kotlinx.coroutines.delay
 
 private class Line(val color: Color) {
@@ -51,13 +54,16 @@ private class Line(val color: Color) {
 @Composable
 fun TracingScreen(onHome: () -> Unit) {
     val speaker = LocalSpeaker.current
+    val sfx = LocalSfx.current
+    var useKatakana by rememberSaveable { mutableStateOf(false) }
+    val letters = if (useKatakana) Katakana.all else Hiragana.all
     var index by rememberSaveable { mutableIntStateOf(0) }
-    val kana = Hiragana.all[index]
-    val lines = remember(index) { mutableStateListOf<Line>() }
-    var praised by remember(index) { mutableStateOf(false) }
+    val kana = letters[index.coerceIn(0, letters.lastIndex)]
+    val lines = remember(kana) { mutableStateListOf<Line>() }
+    var praised by remember(kana) { mutableStateOf(false) }
     val measurer = rememberTextMeasurer()
 
-    LaunchedEffect(index, speaker.ready) { speaker.speak("「${kana.char}」を なぞってみよう") }
+    LaunchedEffect(kana, speaker.ready) { speaker.speak("「${kana.char}」を なぞってみよう") }
     LaunchedEffect(praised) {
         if (praised) {
             delay(2500)
@@ -66,12 +72,25 @@ fun TracingScreen(onHome: () -> Unit) {
     }
 
     fun move(step: Int) {
-        index = (index + step + Hiragana.all.size) % Hiragana.all.size
+        index = (index + step + letters.size) % letters.size
     }
 
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
-            TopBar("なぞりがき", Palette.Blue, onHome)
+            TopBar("なぞりがき", Palette.Blue, onHome) {
+                // ひらがな ⇔ カタカナ きりかえ
+                BouncyBox(
+                    color = if (useKatakana) Palette.Orange else Palette.Red,
+                    onClick = {
+                        useKatakana = !useKatakana
+                        index = 0
+                    },
+                    modifier = Modifier.size(132.dp, 64.dp),
+                    corner = 32.dp,
+                ) {
+                    Text(if (useKatakana) "ア→あ" else "あ→ア", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
+                }
+            }
 
             Box(
                 Modifier
@@ -84,7 +103,7 @@ fun TracingScreen(onHome: () -> Unit) {
                 Canvas(
                     Modifier
                         .fillMaxSize()
-                        .pointerInput(index) {
+                        .pointerInput(kana) {
                             detectDragGestures(
                                 onDragStart = { start ->
                                     val line = Line(Palette.pens[lines.size % Palette.pens.size])
@@ -150,12 +169,17 @@ fun TracingScreen(onHome: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 ToolButton("◀", Palette.Yellow) { move(-1) }
-                ToolButton("🧽", Palette.Pink, Modifier.weight(1f), label = "けす") { lines.clear() }
-                ToolButton("💮", Palette.Green, Modifier.weight(1f), label = "できた") {
+                ToolButton("🧽", Palette.Pink, Modifier.weight(1f), label = "けす", sound = false) {
+                    sfx.play(Sfx.Sound.Swish)
+                    lines.clear()
+                }
+                ToolButton("💮", Palette.Green, Modifier.weight(1f), label = "できた", sound = false) {
                     if (lines.isNotEmpty()) {
                         praised = true
+                        sfx.play(Sfx.Sound.Correct)
                         speaker.speak("じょうずに かけたね!")
                     } else {
+                        sfx.play(Sfx.Sound.Pop)
                         speaker.speak("ゆびで なぞってね")
                     }
                 }
@@ -167,10 +191,17 @@ fun TracingScreen(onHome: () -> Unit) {
 }
 
 @Composable
-private fun ToolButton(icon: String, color: Color, modifier: Modifier = Modifier, label: String? = null, onClick: () -> Unit) {
-    BouncyBox(color = color, onClick = onClick, modifier = modifier.height(76.dp).then(if (label == null) Modifier.size(64.dp, 76.dp) else Modifier), corner = 38.dp) {
+private fun ToolButton(
+    icon: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+    label: String? = null,
+    sound: Boolean = true,
+    onClick: () -> Unit,
+) {
+    BouncyBox(color = color, onClick = onClick, sound = sound, modifier = modifier.height(76.dp).then(if (label == null) Modifier.size(64.dp, 76.dp) else Modifier), corner = 38.dp) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(icon, fontSize = 28.sp, color = Palette.Ink)
+            Text(icon, fontSize = 24.sp, color = Palette.Ink)
             if (label != null) Text(label, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, maxLines = 1, softWrap = false, modifier = Modifier.padding(start = 4.dp))
         }
     }

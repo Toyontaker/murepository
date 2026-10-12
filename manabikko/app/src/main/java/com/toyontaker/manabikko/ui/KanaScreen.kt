@@ -38,14 +38,15 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toyontaker.manabikko.LocalSpeaker
-import com.toyontaker.manabikko.data.Hiragana
 import com.toyontaker.manabikko.data.Kana
+import com.toyontaker.manabikko.data.KanaSet
 
+/** ひらがな / カタカナ の 五十音表 と 大きな カード。 */
 @Composable
-fun HiraganaScreen(onHome: () -> Unit) {
+fun KanaScreen(title: String, kanaSet: KanaSet, color: Color, onHome: () -> Unit) {
     val speaker = LocalSpeaker.current
-    val cells = Hiragana.table.flatten()
-    var selected by rememberSaveable { mutableIntStateOf(0) }
+    val cells = kanaSet.table.flatten()
+    var selected by rememberSaveable(title) { mutableIntStateOf(0) }
     val kana = cells[selected]!!
     val say = { k: Kana -> speaker.speak("${k.char}。 ${k.word}") }
 
@@ -57,7 +58,7 @@ fun HiraganaScreen(onHome: () -> Unit) {
     }
 
     Column(Modifier.fillMaxSize()) {
-        TopBar("ひらがな", Palette.Red, onHome)
+        TopBar(title, color, onHome)
         BoxWithConstraints(Modifier.fillMaxSize().padding(16.dp)) {
             val wide = maxWidth > maxHeight
             val card = @Composable { m: Modifier -> KanaCard(kana, onTap = { say(kana) }, onPrev = { move(-1) }, onNext = { move(1) }, modifier = m) }
@@ -96,7 +97,7 @@ private fun KanaCard(kana: Kana, onTap: () -> Unit, onPrev: () -> Unit, onNext: 
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(k.emoji, fontSize = 56.sp)
                         Spacer(Modifier.size(8.dp))
-                        Text(highlight(k.word, k.char), fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
+                        Text(highlight(k.word, k.char), fontSize = if (k.word.length > 5) 26.sp else 36.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
                     }
                 }
             }

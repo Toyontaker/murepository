@@ -1,5 +1,6 @@
 package com.toyontaker.manabikko
 
+import android.app.ActivityManager
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -20,31 +21,43 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import com.toyontaker.manabikko.data.Hiragana
+import com.toyontaker.manabikko.data.Katakana
 import com.toyontaker.manabikko.ui.CountingScreen
-import com.toyontaker.manabikko.ui.HiraganaScreen
 import com.toyontaker.manabikko.ui.HomeScreen
+import com.toyontaker.manabikko.ui.KanaScreen
 import com.toyontaker.manabikko.ui.ManabikkoTheme
 import com.toyontaker.manabikko.ui.Palette
 import com.toyontaker.manabikko.ui.QuizScreen
 import com.toyontaker.manabikko.ui.TracingScreen
 
-enum class Screen { Home, Hiragana, Counting, Tracing, Quiz }
+enum class Screen { Home, Hiragana, Katakana, Counting, Tracing, Quiz }
 
 class MainActivity : ComponentActivity() {
     private lateinit var speaker: Speaker
+    private lateinit var sfx: Sfx
+    private var locked by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         // あそんでいる あいだは 画面を つけたままにする
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        hideSystemBars()
         speaker = Speaker(this)
+        sfx = Sfx(this)
 
         setContent {
             ManabikkoTheme {
-                CompositionLocalProvider(LocalSpeaker provides speaker) {
+                CompositionLocalProvider(LocalSpeaker provides speaker, LocalSfx provides sfx) {
                     var screen by rememberSaveable { mutableStateOf(Screen.Home) }
-                    BackHandler(enabled = screen != Screen.Home) { screen = Screen.Home }
+                    // ホームでは もどるボタンを むしして、うっかり アプリが とじないようにする
+                    BackHandler {
+                        if (screen != Screen.Home) screen = Screen.Home
+                    }
                     val goHome = { screen = Screen.Home }
 
                     Box(
@@ -59,8 +72,13 @@ class MainActivity : ComponentActivity() {
                             label = "screen",
                         ) { current ->
                             when (current) {
-                                Screen.Home -> HomeScreen(onOpen = { screen = it })
-                                Screen.Hiragana -> HiraganaScreen(onHome = goHome)
+                                Screen.Home -> HomeScreen(
+                                    onOpen = { screen = it },
+                                    locked = locked,
+                                    onToggleLock = ::toggleLock,
+                                )
+                                Screen.Hiragana -> KanaScreen("ひらがな", Hiragana, Palette.Red, onHome = goHome)
+                                Screen.Katakana -> KanaScreen("カタカナ", Katakana, Palette.Orange, onHome = goHome)
                                 Screen.Counting -> CountingScreen(onHome = goHome)
                                 Screen.Tracing -> TracingScreen(onHome = goHome)
                                 Screen.Quiz -> QuizScreen(onHome = goHome)
@@ -72,8 +90,51 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** ステータスバーと ナビゲーションバーを かくして 全画面にする。 */
+    private fun hideSystemBars() {
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            hide(WindowInsetsCompat.Type.systemBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) hideSystemBars()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshLockState()
+    }
+
+    private fun refreshLockState() {
+        val am = getSystemService(ActivityManager::class.java)
+        locked = am.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE
+    }
+
+    /**
+     * 「画面の固定」で このアプリから でられないようにする / 解除する。
+     * 端末の 設定 で「アプリの固定」を オンに しておく必要がある。
+     */
+    private fun toggleLock() {
+        refreshLockState()
+        if (locked) {
+            stopLockTask()
+            locked = false
+        } else {
+            try {
+                startLockTask()
+                locked = true
+            } catch (_: Exception) {
+                locked = false
+            }
+        }
+    }
+
     override fun onDestroy() {
         speaker.shutdown()
+        sfx.release()
         super.onDestroy()
     }
 }

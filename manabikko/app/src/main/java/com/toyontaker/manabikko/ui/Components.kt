@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -39,6 +40,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toyontaker.manabikko.LocalSfx
+import com.toyontaker.manabikko.Sfx
 
 /** おすと ぷにっと ちぢむ、まるい ボタン。 */
 @Composable
@@ -47,8 +50,10 @@ fun BouncyBox(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     corner: Dp = 28.dp,
+    sound: Boolean = true,
     content: @Composable BoxScope.() -> Unit,
 ) {
+    val sfx = LocalSfx.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -64,7 +69,10 @@ fun BouncyBox(
             .clip(shape)
             .background(color)
             .border(4.dp, Color.White, shape)
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+            .clickable(interactionSource = interaction, indication = null) {
+                if (sound) sfx.play(Sfx.Sound.Pop)
+                onClick()
+            },
         contentAlignment = Alignment.Center,
         content = content,
     )
@@ -72,7 +80,7 @@ fun BouncyBox(
 
 /** 画面の上の、「おうち」ボタンと タイトル。 */
 @Composable
-fun TopBar(title: String, color: Color, onHome: () -> Unit) {
+fun TopBar(title: String, color: Color, onHome: () -> Unit, trailing: @Composable () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -91,6 +99,8 @@ fun TopBar(title: String, color: Color, onHome: () -> Unit) {
         ) {
             Text(title, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
         }
+        Spacer(Modifier.weight(1f))
+        trailing()
     }
 }
 

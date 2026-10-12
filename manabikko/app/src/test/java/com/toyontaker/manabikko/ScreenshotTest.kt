@@ -8,11 +8,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.toyontaker.manabikko.ui.CountingScreen
-import com.toyontaker.manabikko.ui.HiraganaScreen
+import com.toyontaker.manabikko.ui.KanaScreen
+import com.toyontaker.manabikko.data.Hiragana
+import com.toyontaker.manabikko.data.Katakana
 import com.toyontaker.manabikko.ui.HomeScreen
 import com.toyontaker.manabikko.ui.ManabikkoTheme
 import com.toyontaker.manabikko.ui.Palette
@@ -32,21 +36,29 @@ import org.robolectric.annotation.GraphicsMode
 class ScreenshotTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
 
-    private fun shot(name: String, content: @Composable () -> Unit) {
-        val speaker = Speaker(ApplicationProvider.getApplicationContext())
+    private fun shot(name: String, before: () -> Unit = {}, content: @Composable () -> Unit) {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val speaker = Speaker(context)
+        val sfx = Sfx(context)
         rule.setContent {
             ManabikkoTheme {
-                CompositionLocalProvider(LocalSpeaker provides speaker) {
+                CompositionLocalProvider(LocalSpeaker provides speaker, LocalSfx provides sfx) {
                     Box(Modifier.fillMaxSize().background(Palette.Background)) { content() }
                 }
             }
         }
+        before()
         rule.onRoot().captureRoboImage("screenshots/$name.png")
     }
 
     @Test fun home() = shot("home") { HomeScreen(onOpen = {}) }
-    @Test fun hiragana() = shot("hiragana") { HiraganaScreen(onHome = {}) }
-    @Test fun counting() = shot("counting") { CountingScreen(onHome = {}) }
+    @Test fun hiragana() = shot("hiragana") { KanaScreen("ひらがな", Hiragana, Palette.Red, onHome = {}) }
+    @Test fun katakana() = shot("katakana") { KanaScreen("カタカナ", Katakana, Palette.Orange, onHome = {}) }
+    @Test fun counting() = shot("counting", before = {
+        // 10こ のうち 4こ かぞえた ところ
+        listOf(0, 3, 6, 9).forEach { rule.onNodeWithTag("item_$it").performClick() }
+        rule.mainClock.advanceTimeBy(1000)
+    }) { CountingScreen(onHome = {}, initialTarget = 10) }
     @Test fun tracing() = shot("tracing") { TracingScreen(onHome = {}) }
     @Test fun quiz() = shot("quiz") { QuizScreen(onHome = {}) }
 }

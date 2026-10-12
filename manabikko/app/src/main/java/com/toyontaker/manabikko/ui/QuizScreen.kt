@@ -36,7 +36,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toyontaker.manabikko.LocalSpeaker
+import com.toyontaker.manabikko.LocalSfx
+import com.toyontaker.manabikko.Sfx
 import com.toyontaker.manabikko.data.Hiragana
+import com.toyontaker.manabikko.data.Kana
+import com.toyontaker.manabikko.data.Katakana
 import com.toyontaker.manabikko.data.Numbers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -61,20 +65,30 @@ private sealed interface Question {
 }
 
 private fun newQuestion(): Question =
-    if (Math.random() < 0.5) {
-        val picks = Hiragana.all.shuffled().take(3).map { it.char }
-        Question.FindKana(answer = picks.first(), choices = picks.shuffled())
-    } else {
-        // 3さいむけに 1〜5 まで
-        val count = (1..5).random()
-        val (emoji, name) = Numbers.things.random()
-        val choices = ((1..5).filter { it != count }.shuffled().take(2) + count).shuffled().map { it.toString() }
-        Question.HowMany(count, emoji, name, choices)
+    when ((0 until 5).random()) {
+        // ひらがな 2 : カタカナ 1 : かず 2 の わりあい
+        0, 1 -> findKana(Hiragana.all)
+        2 -> findKana(Katakana.all)
+        else -> howMany()
     }
+
+private fun findKana(letters: List<Kana>): Question {
+    val picks = letters.shuffled().take(3).map { it.char }
+    return Question.FindKana(answer = picks.first(), choices = picks.shuffled())
+}
+
+private fun howMany(): Question {
+    // 3さいむけに 1〜5 まで
+    val count = (1..5).random()
+    val (emoji, name) = Numbers.things.random()
+    val choices = ((1..5).filter { it != count }.shuffled().take(2) + count).shuffled().map { it.toString() }
+    return Question.HowMany(count, emoji, name, choices)
+}
 
 @Composable
 fun QuizScreen(onHome: () -> Unit) {
     val speaker = LocalSpeaker.current
+    val sfx = LocalSfx.current
     var round by remember { mutableIntStateOf(0) }
     var number by remember(round) { mutableIntStateOf(0) }
     var stars by remember(round) { mutableIntStateOf(0) }
@@ -97,6 +111,7 @@ fun QuizScreen(onHome: () -> Unit) {
         }
     }
     LaunchedEffect(finished) {
+        if (finished) sfx.play(Sfx.Sound.Fanfare)
         if (finished) speaker.speak("ぜんぶ おわったよ! ほしが ${stars}こ。 すごいね!")
     }
 
@@ -133,10 +148,12 @@ fun QuizScreen(onHome: () -> Unit) {
                         if (choice == question.answer) {
                             if (firstTry) stars += 1
                             correct = true
+                            sfx.play(Sfx.Sound.Correct)
                             speaker.speak("せいかい! すごいね!")
                             true
                         } else {
                             firstTry = false
+                            sfx.play(Sfx.Sound.Wrong)
                             speaker.speak("ちがうよ。 もういっかい!")
                             false
                         }
@@ -209,6 +226,7 @@ private fun ChoiceTile(text: String, color: Color, size: androidx.compose.ui.uni
     val scope = rememberCoroutineScope()
     BouncyBox(
         color = color,
+        sound = false,
         onClick = {
             if (!onClick()) {
                 // まちがえたら ぷるぷる

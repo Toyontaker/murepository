@@ -8,21 +8,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,25 +30,32 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
+import com.toyontaker.manabikko.LocalSfx
 import com.toyontaker.manabikko.LocalSpeaker
+import com.toyontaker.manabikko.Sfx
 import com.toyontaker.manabikko.data.Numbers
 import kotlinx.coroutines.delay
+
+private val GAP = 8.dp
+private val MAX_ITEM = 140.dp
 
 /**
  * かずあそび:えらんだ数だけ ものが でてくるので、ひとつずつ タップして かぞえる。
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun CountingScreen(onHome: () -> Unit) {
+fun CountingScreen(onHome: () -> Unit, initialTarget: Int = 1) {
     val speaker = LocalSpeaker.current
-    var target by rememberSaveable { mutableIntStateOf(1) }
+    val sfx = LocalSfx.current
+    var target by rememberSaveable { mutableIntStateOf(initialTarget) }
     var thingIndex by rememberSaveable { mutableIntStateOf(0) }
     // タップした じゅんばん(どのアイテムが なんばんめ か)
     val order = remember(target, thingIndex) { mutableStateListOf<Int>() }
@@ -73,6 +75,7 @@ fun CountingScreen(onHome: () -> Unit) {
         if (i in order || done) return
         order += i
         val count = order.size
+        sfx.count(count)
         if (count == target) {
             done = true
             speaker.speak("${Numbers.reading(count)}! ${name}は ${Numbers.counter(count)}。 よく できたね!")
@@ -84,7 +87,9 @@ fun CountingScreen(onHome: () -> Unit) {
     // おいわいを すこし みせたら、つぎの かずへ
     LaunchedEffect(done) {
         if (done) {
-            delay(3500)
+            delay(400)
+            sfx.play(Sfx.Sound.Fanfare)
+            delay(3100)
             choose(if (target >= 10) 1 else target + 1)
         }
     }
@@ -101,58 +106,70 @@ fun CountingScreen(onHome: () -> Unit) {
             ) {
                 Text(
                     if (order.isEmpty()) "?" else order.size.toString(),
-                    fontSize = 96.sp,
+                    fontSize = 72.sp,
                     fontWeight = FontWeight.Black,
                     color = if (done) Color(0xFFE53935) else Palette.Ink,
                 )
                 Text(
                     if (order.isEmpty()) "タップしてね" else Numbers.reading(order.size),
                     fontSize = 32.sp,
-                    maxLines = 1,
                     fontWeight = FontWeight.Bold,
                     color = Palette.Ink,
+                    maxLines = 1,
                     modifier = Modifier.padding(start = 16.dp),
                 )
             }
 
-            // かぞえる もの
-            Box(
+            // かぞえる もの(スクロール なしで ぜんぶ 見えるように 大きさを きめる)
+            BoxWithConstraints(
                 Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
                     .clip(RoundedCornerShape(36.dp))
                     .background(Color.White)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
+                    .padding(12.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    repeat(target) { i ->
-                        val pos = order.indexOf(i)
-                        CountItem(emoji = emoji, number = if (pos >= 0) pos + 1 else null, onTap = { tap(i) })
+                val (columns, itemSize) = fitGrid(target, maxWidth, maxHeight)
+                Column(verticalArrangement = Arrangement.spacedBy(GAP)) {
+                    (0 until target).chunked(columns).forEach { row ->
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(GAP),
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                        ) {
+                            row.forEach { i ->
+                                val pos = order.indexOf(i)
+                                CountItem(
+                                    emoji = emoji,
+                                    number = if (pos >= 0) pos + 1 else null,
+                                    size = itemSize,
+                                    onTap = { tap(i) },
+                                    modifier = Modifier.testTag("item_$i"),
+                                )
+                            }
+                        }
                     }
                 }
             }
 
-            // かずを えらぶ
-            LazyRow(
-                Modifier.fillMaxWidth().height(96.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp),
+            // かずを えらぶ(5こずつ 2だん)
+            Column(
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items((1..10).toList()) { n ->
-                    BouncyBox(
-                        color = if (n == target) Palette.Orange else Palette.rainbow[(n - 1) % Palette.rainbow.size],
-                        onClick = { choose(n) },
-                        modifier = Modifier.size(76.dp),
-                        corner = 38.dp,
-                    ) {
-                        Text(n.toString(), fontSize = 36.sp, fontWeight = FontWeight.Black, color = Palette.Ink)
+                (1..10).chunked(5).forEach { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        row.forEach { n ->
+                            BouncyBox(
+                                color = if (n == target) Palette.Orange else Palette.Yellow,
+                                onClick = { choose(n) },
+                                modifier = Modifier.weight(1f).height(60.dp),
+                                corner = 30.dp,
+                            ) {
+                                Text(n.toString(), fontSize = 30.sp, fontWeight = FontWeight.Black, color = Palette.Ink)
+                            }
+                        }
                     }
                 }
             }
@@ -161,24 +178,42 @@ fun CountingScreen(onHome: () -> Unit) {
     }
 }
 
+/** n こ を ならべるとき、いちばん 大きく できる れつの数 と 1こ の 大きさ。 */
+private fun fitGrid(n: Int, width: Dp, height: Dp): Pair<Int, Dp> {
+    var best = 1 to 0.dp
+    for (cols in 1..n) {
+        val rows = (n + cols - 1) / cols
+        val size = min((width - GAP * (cols - 1)) / cols, (height - GAP * (rows - 1)) / rows)
+        if (size > best.second) best = cols to size
+    }
+    return best.first to min(best.second, MAX_ITEM)
+}
+
 @Composable
-private fun CountItem(emoji: String, number: Int?, onTap: () -> Unit) {
+private fun CountItem(emoji: String, number: Int?, size: Dp, onTap: () -> Unit, modifier: Modifier = Modifier) {
     val counted = number != null
     val scale by animateFloatAsState(
-        targetValue = if (counted) 1.15f else 1f,
+        targetValue = if (counted) 1.08f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioHighBouncy),
         label = "count",
     )
+    // まわりに すこし よゆうを とって、ふくらんでも バッジが きれないようにする
     Box(
-        Modifier
-            .size(96.dp)
-            .scale(scale)
-            .clip(CircleShape)
-            .background(if (counted) Palette.Yellow else Palette.Faint.copy(alpha = 0.5f))
+        modifier
+            .size(size)
             .clickable(remember { MutableInteractionSource() }, indication = null, onClick = onTap),
         contentAlignment = Alignment.Center,
     ) {
-        Text(emoji, fontSize = 56.sp, modifier = Modifier.alpha(if (counted) 1f else 0.9f))
+        Box(
+            Modifier
+                .size(size * 0.84f)
+                .scale(scale)
+                .clip(CircleShape)
+                .background(if (counted) Palette.Yellow else Palette.Faint.copy(alpha = 0.5f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(emoji, fontSize = (size.value * 0.48f).sp)
+        }
         if (number != null) {
             Badge(number.toString(), Color(0xFFE53935), Modifier.align(Alignment.TopEnd))
         }
