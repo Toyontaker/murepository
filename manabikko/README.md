@@ -109,7 +109,7 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 ./gradlew connectedDebugAndroidTest                 # 実機/エミュレータでの 端末テスト
 ```
 
-GitHub Actions(`.github/workflows/manabikko-android.yml`)が push のたびに 上記に加えて、
+GitHub Actions(`.github/workflows/manabikko-android.yml`)が PR のたびに 上記に加えて、
 Android 8.0 / 16 の エミュレータで 端末テストと、縮小済みリリース APK への ランダム操作(5000回)を 実行します。
 
 ### スクリーンショットの更新

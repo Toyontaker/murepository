@@ -1,13 +1,11 @@
 name: manabikko (Android)
 
+# PR の ときだけ 実行(push ごとに 二重に 動かないように)。手動実行も できる
 on:
-  push:
-    paths:
-      - "manabikko/**"
-      - ".github/workflows/manabikko-android.yml"
   pull_request:
     paths:
       - "manabikko/**"
+      - ".github/workflows/manabikko-android.yml"
   workflow_dispatch:
 
 concurrency:
