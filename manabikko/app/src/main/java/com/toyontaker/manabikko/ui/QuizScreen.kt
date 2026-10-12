@@ -31,6 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -42,15 +44,19 @@ import com.toyontaker.manabikko.data.Hiragana
 import com.toyontaker.manabikko.data.Kana
 import com.toyontaker.manabikko.data.Katakana
 import com.toyontaker.manabikko.data.Numbers
+import com.toyontaker.manabikko.data.Thing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private const val QUESTIONS_PER_ROUND = 5
 
-private sealed interface Question {
+internal sealed interface Question {
     val prompt: String
     val choices: List<String>
     val answer: String
+
+    /** せいかい したときの ことば */
+    val praise: String get() = "せいかい! すごいね!"
 
     /** 「『あ』は どれかな?」 */
     data class FindKana(override val answer: String, override val choices: List<String>) : Question {
@@ -58,13 +64,14 @@ private sealed interface Question {
     }
 
     /** 「りんごは いくつ?」 */
-    data class HowMany(val count: Int, val emoji: String, val name: String, override val choices: List<String>) : Question {
-        override val answer get() = count.toString()
-        override val prompt get() = "${name}は いくつ?"
+    data class HowMany(val count: Int, val thing: Thing, override val choices: List<String>) : Question {
+        override val answer get() = thing.counter.label(count)
+        override val prompt get() = "${thing.name}は ${thing.counter.question}?"
+        override val praise get() = "せいかい! ${thing.counter.reading(count)}!"
     }
 }
 
-private fun newQuestion(): Question =
+internal fun newQuestion(): Question =
     when ((0 until 5).random()) {
         // ひらがな 2 : カタカナ 1 : かず 2 の わりあい
         0, 1 -> findKana(Hiragana.all)
@@ -80,13 +87,13 @@ private fun findKana(letters: List<Kana>): Question {
 private fun howMany(): Question {
     // 3さいむけに 1〜5 まで
     val count = (1..5).random()
-    val (emoji, name) = Numbers.things.random()
-    val choices = ((1..5).filter { it != count }.shuffled().take(2) + count).shuffled().map { it.toString() }
-    return Question.HowMany(count, emoji, name, choices)
+    val thing = Numbers.things.random()
+    val choices = ((1..5).filter { it != count }.shuffled().take(2) + count).shuffled().map { thing.counter.label(it) }
+    return Question.HowMany(count, thing, choices)
 }
 
 @Composable
-fun QuizScreen(onHome: () -> Unit) {
+internal fun QuizScreen(onHome: () -> Unit, firstQuestion: Question = newQuestion()) {
     val speaker = LocalSpeaker.current
     val sfx = LocalSfx.current
     var round by remember { mutableIntStateOf(0) }
@@ -94,7 +101,7 @@ fun QuizScreen(onHome: () -> Unit) {
     var stars by remember(round) { mutableIntStateOf(0) }
     // そのもんだいで 1かいめで せいかいしたか
     var firstTry by remember { mutableStateOf(true) }
-    var question by remember { mutableStateOf(newQuestion()) }
+    var question by remember { mutableStateOf(firstQuestion) }
     var correct by remember { mutableStateOf(false) }
     val finished = number >= QUESTIONS_PER_ROUND
 
@@ -149,7 +156,7 @@ fun QuizScreen(onHome: () -> Unit) {
                             if (firstTry) stars += 1
                             correct = true
                             sfx.play(Sfx.Sound.Correct)
-                            speaker.speak("せいかい! すごいね!")
+                            speaker.speak(question.praise)
                             true
                         } else {
                             firstTry = false
@@ -194,7 +201,7 @@ private fun QuestionView(question: Question, onRepeat: () -> Unit, onAnswer: (St
                             .padding(16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                     ) {
-                        repeat(question.count) { Text(question.emoji, fontSize = 56.sp) }
+                        repeat(question.count) { Text(question.thing.emoji, fontSize = 56.sp) }
                     }
                 } else {
                     Text("👀", fontSize = 72.sp)
@@ -240,7 +247,18 @@ private fun ChoiceTile(text: String, color: Color, size: androidx.compose.ui.uni
             .graphicsLayer { translationX = shake.value },
         corner = 32.dp,
     ) {
-        Text(text, fontSize = (size.value * 0.5f).sp, fontWeight = FontWeight.Black, color = Palette.Ink)
+        // 「3ぼん」は 数字を 大きく、じょすうしを 小さく
+        val digits = text.takeWhile { it.isDigit() }
+        Text(
+            buildAnnotatedString {
+                append(text)
+                if (digits.isNotEmpty()) addStyle(SpanStyle(fontSize = (size.value * 0.2f).sp), digits.length, text.length)
+            },
+            fontSize = (size.value * if (digits.isNotEmpty() && digits.length < text.length) 0.42f else 0.5f).sp,
+            fontWeight = FontWeight.Black,
+            color = Palette.Ink,
+            maxLines = 1,
+        )
     }
 }
 

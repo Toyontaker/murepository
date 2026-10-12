@@ -32,11 +32,13 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toyontaker.manabikko.LocalSpeaker
@@ -44,10 +46,14 @@ import com.toyontaker.manabikko.LocalSfx
 import com.toyontaker.manabikko.Sfx
 import com.toyontaker.manabikko.data.Hiragana
 import com.toyontaker.manabikko.data.Katakana
+import com.toyontaker.manabikko.trace.Glyph
+import com.toyontaker.manabikko.trace.Grade
 import kotlinx.coroutines.delay
 
 private class Line(val color: Color) {
     val points = mutableStateListOf<Offset>()
+
+    fun toFloatArray() = FloatArray(points.size * 2) { i -> if (i % 2 == 0) points[i / 2].x else points[i / 2].y }
 }
 
 /** なぞりがき:うすく かいてある ひらがなを ゆびで なぞる。 */
@@ -60,14 +66,47 @@ fun TracingScreen(onHome: () -> Unit) {
     var index by rememberSaveable { mutableIntStateOf(0) }
     val kana = letters[index.coerceIn(0, letters.lastIndex)]
     val lines = remember(kana) { mutableStateListOf<Line>() }
-    var praised by remember(kana) { mutableStateOf(false) }
-    val measurer = rememberTextMeasurer()
+    // さいてんの けっか(null のときは まだ)
+    var grade by remember(kana) { mutableStateOf<Grade?>(null) }
+    var lastGrade by remember { mutableStateOf(Grade.Good) }
+    var canvasSize by remember { mutableStateOf(IntSize.Zero) }
+    val glyph = remember(kana, canvasSize) {
+        Glyph(kana.char, canvasSize.width.toFloat(), canvasSize.height.toFloat())
+    }
+    val templatePaint = remember(glyph) { glyph.paint(Palette.Faint.toArgb()) }
+    val scorer = remember(glyph) { if (canvasSize == IntSize.Zero) null else glyph.scorer() }
 
     LaunchedEffect(kana, speaker.ready) { speaker.speak("「${kana.char}」を なぞってみよう") }
-    LaunchedEffect(praised) {
-        if (praised) {
-            delay(2500)
-            praised = false
+    LaunchedEffect(grade) {
+        val g = grade ?: return@LaunchedEffect
+        delay(2500)
+        // はずれた ときは けして もういちど
+        if (g == Grade.Miss) lines.clear()
+        grade = null
+    }
+
+    fun check() {
+        val result = scorer?.score(lines.map { it.toFloatArray() })
+        if (lines.isEmpty() || result == null) {
+            sfx.play(Sfx.Sound.Pop)
+            speaker.speak("ゆびで なぞってね")
+            return
+        }
+        grade = result.grade
+        lastGrade = result.grade
+        when (result.grade) {
+            Grade.Great -> {
+                sfx.play(Sfx.Sound.Fanfare)
+                speaker.speak("はなまる! とっても じょうず!")
+            }
+            Grade.Good -> {
+                sfx.play(Sfx.Sound.Correct)
+                speaker.speak("じょうずに かけたね!")
+            }
+            Grade.Miss -> {
+                sfx.play(Sfx.Sound.Wrong)
+                speaker.speak("おしい! うすい もじの うえを なぞってみよう")
+            }
         }
     }
 
@@ -103,6 +142,7 @@ fun TracingScreen(onHome: () -> Unit) {
                 Canvas(
                     Modifier
                         .fillMaxSize()
+                        .onSizeChanged { canvasSize = it }
                         .pointerInput(kana) {
                             detectDragGestures(
                                 onDragStart = { start ->
@@ -122,19 +162,8 @@ fun TracingScreen(onHome: () -> Unit) {
                     drawLine(dash, Offset(size.width / 2, 0f), Offset(size.width / 2, size.height), 4f)
                     drawLine(dash, Offset(0f, size.height / 2), Offset(size.width, size.height / 2), 4f)
 
-                    // おてほんの文字(うすい色)
-                    val fontPx = minOf(size.width, size.height) * 0.78f
-                    val layout = measurer.measure(
-                        kana.char,
-                        TextStyle(fontSize = (fontPx / density).sp, fontWeight = FontWeight.Bold, color = Palette.Faint),
-                    )
-                    drawText(
-                        layout,
-                        topLeft = Offset(
-                            (size.width - layout.size.width) / 2,
-                            (size.height - layout.size.height) / 2,
-                        ),
-                    )
+                    // おてほんの文字(うすい色)。採点と 同じ レイアウトで かく
+                    drawIntoCanvas { glyph.draw(it.nativeCanvas, templatePaint) }
 
                     // こどもが かいた線
                     val strokeWidth = minOf(size.width, size.height) * 0.05f
@@ -173,20 +202,17 @@ fun TracingScreen(onHome: () -> Unit) {
                     sfx.play(Sfx.Sound.Swish)
                     lines.clear()
                 }
-                ToolButton("💮", Palette.Green, Modifier.weight(1f), label = "できた", sound = false) {
-                    if (lines.isNotEmpty()) {
-                        praised = true
-                        sfx.play(Sfx.Sound.Correct)
-                        speaker.speak("じょうずに かけたね!")
-                    } else {
-                        sfx.play(Sfx.Sound.Pop)
-                        speaker.speak("ゆびで なぞってね")
-                    }
-                }
+                ToolButton("💮", Palette.Green, Modifier.weight(1f), label = "できた", sound = false) { check() }
                 ToolButton("▶", Palette.Yellow) { move(1) }
             }
         }
-        Celebration(visible = praised, emoji = "💮", message = "じょうず!")
+        // けっかを ひょうじ(きえていく あいだも 前の けっかを だす)
+        val (emoji, message) = when (lastGrade) {
+            Grade.Great -> "💮" to "はなまる!"
+            Grade.Good -> "⭕" to "じょうず!"
+            Grade.Miss -> "🙂" to "おしい!\nもういっかい"
+        }
+        Celebration(visible = grade != null, emoji = emoji, message = message)
     }
 }
 

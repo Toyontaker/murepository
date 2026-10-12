@@ -21,6 +21,9 @@ import com.toyontaker.manabikko.ui.HomeScreen
 import com.toyontaker.manabikko.ui.ManabikkoTheme
 import com.toyontaker.manabikko.ui.Palette
 import com.toyontaker.manabikko.ui.QuizScreen
+import com.toyontaker.manabikko.ui.Question
+import com.toyontaker.manabikko.data.Counter
+import com.toyontaker.manabikko.data.Numbers
 import com.toyontaker.manabikko.ui.TracingScreen
 import org.junit.Rule
 import org.junit.Test
@@ -55,10 +58,13 @@ class ScreenshotTest {
     @Test fun hiragana() = shot("hiragana") { KanaScreen("ひらがな", Hiragana, Palette.Red, onHome = {}) }
     @Test fun katakana() = shot("katakana") { KanaScreen("カタカナ", Katakana, Palette.Orange, onHome = {}) }
     @Test fun counting() = shot("counting", before = {
-        // 10こ のうち 4こ かぞえた ところ
+        // ばなな 10ぽん のうち 4ほん かぞえた ところ
         listOf(0, 3, 6, 9).forEach { rule.onNodeWithTag("item_$it").performClick() }
         rule.mainClock.advanceTimeBy(1000)
-    }) { CountingScreen(onHome = {}, initialTarget = 10) }
+    }) { CountingScreen(onHome = {}, initialTarget = 10, initialThing = 1) }
     @Test fun tracing() = shot("tracing") { TracingScreen(onHome = {}) }
-    @Test fun quiz() = shot("quiz") { QuizScreen(onHome = {}) }
+    @Test fun quiz() = shot("quiz") {
+        val fish = Numbers.things.first { it.counter == Counter.Hiki }
+        QuizScreen(onHome = {}, firstQuestion = Question.HowMany(3, fish, listOf(1, 3, 6).map { fish.counter.label(it) }))
+    }
 }

@@ -52,15 +52,15 @@ private val MAX_ITEM = 140.dp
  * かずあそび:えらんだ数だけ ものが でてくるので、ひとつずつ タップして かぞえる。
  */
 @Composable
-fun CountingScreen(onHome: () -> Unit, initialTarget: Int = 1) {
+fun CountingScreen(onHome: () -> Unit, initialTarget: Int = 1, initialThing: Int = 0) {
     val speaker = LocalSpeaker.current
     val sfx = LocalSfx.current
     var target by rememberSaveable { mutableIntStateOf(initialTarget) }
-    var thingIndex by rememberSaveable { mutableIntStateOf(0) }
+    var thingIndex by rememberSaveable { mutableIntStateOf(initialThing) }
     // タップした じゅんばん(どのアイテムが なんばんめ か)
     val order = remember(target, thingIndex) { mutableStateListOf<Int>() }
     var done by remember(target, thingIndex) { mutableStateOf(false) }
-    val (emoji, name) = Numbers.things[thingIndex]
+    val (emoji, name, counter) = Numbers.things[thingIndex]
 
     LaunchedEffect(target, thingIndex, speaker.ready) {
         speaker.speak("${name}を かぞえよう")
@@ -78,9 +78,10 @@ fun CountingScreen(onHome: () -> Unit, initialTarget: Int = 1) {
         sfx.count(count)
         if (count == target) {
             done = true
-            speaker.speak("${Numbers.reading(count)}! ${name}は ${Numbers.counter(count)}。 よく できたね!")
+            speaker.speak("${counter.reading(count)}! ${name}は ${counter.reading(count)}。 よく できたね!")
         } else {
-            speaker.speak(Numbers.reading(count))
+            // 「いっぽん、にほん、さんぼん…」と じょすうしつきで かぞえる
+            speaker.speak(counter.reading(count))
         }
     }
 
@@ -98,25 +99,35 @@ fun CountingScreen(onHome: () -> Unit, initialTarget: Int = 1) {
         Column(Modifier.fillMaxSize()) {
             TopBar("かず", Palette.Green, onHome)
 
-            // いま いくつ かぞえたか
+            // いま いくつ かぞえたか(「3ぼん さんぼん」)
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.Center,
             ) {
+                val countColor = if (done) Color(0xFFE53935) else Palette.Ink
                 Text(
                     if (order.isEmpty()) "?" else order.size.toString(),
                     fontSize = 72.sp,
                     fontWeight = FontWeight.Black,
-                    color = if (done) Color(0xFFE53935) else Palette.Ink,
+                    color = countColor,
                 )
+                if (order.isNotEmpty()) {
+                    Text(
+                        counter.suffix(order.size),
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Black,
+                        color = countColor,
+                        modifier = Modifier.padding(bottom = 14.dp),
+                    )
+                }
                 Text(
-                    if (order.isEmpty()) "タップしてね" else Numbers.reading(order.size),
+                    if (order.isEmpty()) "タップしてね" else counter.reading(order.size),
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     color = Palette.Ink,
                     maxLines = 1,
-                    modifier = Modifier.padding(start = 16.dp),
+                    modifier = Modifier.padding(start = 16.dp, bottom = 16.dp),
                 )
             }
 
@@ -174,7 +185,7 @@ fun CountingScreen(onHome: () -> Unit, initialTarget: Int = 1) {
                 }
             }
         }
-        Celebration(visible = done, emoji = "🎉", message = "${target}こ!\nよく できたね")
+        Celebration(visible = done, emoji = "🎉", message = "${counter.label(target)}!\nよく できたね")
     }
 }
 
