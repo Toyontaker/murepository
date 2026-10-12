@@ -16,7 +16,10 @@ set -e
 # 2) リリースAPKを 入れなおして、ランダム操作を 5000回
 adb uninstall "$PKG" || true
 adb install -r app/build/outputs/apk/release/app-release.apk
-adb logcat -c
+# 古い Android の エミュレータでは ログの 消去が 失敗する ことが あるので、
+# かわりに 開始時刻を おぼえて それ以降の ログだけ 見る
+adb logcat -c || true
+SINCE=$(adb shell date '+%m-%d %H:%M:%S.000' | tr -d '\r')
 adb shell am start -W -n "$PKG/.MainActivity"
 sleep 5
 adb exec-out screencap -p > "$OUT/release-start.png"
@@ -26,7 +29,7 @@ adb shell monkey -p "$PKG" --pct-syskeys 0 --pct-appswitch 0 --pct-anyevent 0 \
 MONKEY=$?
 set -e
 adb exec-out screencap -p > "$OUT/release-after-monkey.png"
-adb logcat -d > "$OUT/logcat.txt"
+adb logcat -d -T "$SINCE" > "$OUT/logcat.txt"
 
 # 落ちていないか(モンキーの 完走 と、アプリの クラッシュ / ANR が ないこと)
 tail -5 "$OUT/monkey.txt"
