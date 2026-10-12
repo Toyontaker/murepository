@@ -97,6 +97,21 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 > 音声が出ないときは、端末の「設定 → システム → 言語と入力 → テキスト読み上げの出力」で
 > Google 音声サービスなどの日本語音声データが入っているか確認してください。
 
+## 正式版(Google Play)
+
+リリース手順・Play Console の回答・手動チェックリストは **[RELEASE.md](RELEASE.md)**、
+ストア掲載用の画像と文章は `store/`、プライバシーポリシーは `docs/privacy-policy.html` にあります。
+
+## テスト
+
+```bash
+./gradlew lintDebug lintRelease testDebugUnitTest   # lint(警告ゼロ)+ ロジック・画面の流れ・画面サイズ・権限 の テスト
+./gradlew connectedDebugAndroidTest                 # 実機/エミュレータでの 端末テスト
+```
+
+GitHub Actions(`.github/workflows/manabikko-android.yml`)が push のたびに 上記に加えて、
+Android 8.0 / 16 の エミュレータで 端末テストと、縮小済みリリース APK への ランダム操作(5000回)を 実行します。
+
 ### スクリーンショットの更新
 
 画面のスクリーンショットは Robolectric + Roborazzi で JVM 上に描画しています(エミュレータ不要)。
