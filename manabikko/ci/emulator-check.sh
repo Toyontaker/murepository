@@ -23,10 +23,23 @@ adb shell log -t MANABIKKO_CI MONKEY_START
 adb shell am start -W -n "$PKG/.MainActivity"
 sleep 5
 adb exec-out screencap -p > "$OUT/release-start.png"
+# ログは エミュレータが 止まっても 残るよう、ホスト側に ずっと 書き出しておく
+adb logcat -v time > "$OUT/logcat-stream.txt" 2>&1 &
+LOGCAT_PID=$!
 set +e
 adb shell monkey -p "$PKG" --pct-syskeys 0 --pct-appswitch 0 --pct-anyevent 0 \
   --throttle 40 -s 20261012 -v 5000 > "$OUT/monkey.txt" 2>&1
 MONKEY=$?
+kill $LOGCAT_PID 2>/dev/null
+# エミュレータ自体が 落ちた ときは、原因(ホストの メモリ不足 など)を 記録して 失敗に する
+if ! adb get-state >/dev/null 2>&1; then
+  echo "::error::emulator went offline during the monkey run"
+  echo "--- host memory ---"; free -m
+  echo "--- emulator processes ---"; ps aux | grep -E "qemu|emulator" | grep -v grep || true
+  echo "--- kernel log (OOM killer etc.) ---"; sudo dmesg 2>/dev/null | tail -40 || true
+  echo "--- last app/system log lines ---"; tail -60 "$OUT/logcat-stream.txt" || true
+  exit 1
+fi
 set -e
 adb exec-out screencap -p > "$OUT/release-after-monkey.png"
 adb logcat -d > "$OUT/logcat-all.txt"
