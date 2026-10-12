@@ -40,11 +40,33 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.onLongClick
+import androidx.compose.ui.semantics.semantics
+import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.sp
 import com.toyontaker.manabikko.LocalSfx
 import com.toyontaker.manabikko.Sfx
 
-/** おすと ぷにっと ちぢむ、まるい ボタン。 */
+/**
+ * おすと ぷにっと ちぢむ、まるい ボタン。
+ *
+ * longPressMillis を わたすと「ながおし ボタン」に なる:ちょっと さわった だけでは 反応せず、
+ * その時間 おしつづけると onClick。おしている あいだ、ボタンが 左から 白く たまっていく。
+ * (あそんでいる 最中に 手が ふれて 画面が かわったり、設定が かわったり しないように)
+ */
 @Composable
 fun BouncyBox(
     color: Color,
@@ -52,13 +74,22 @@ fun BouncyBox(
     modifier: Modifier = Modifier,
     corner: Dp = 28.dp,
     sound: Boolean = true,
+    longPressMillis: Long? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val sfx = LocalSfx.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
+    var holding by remember { mutableStateOf(false) }
+    val holdProgress = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+    val currentOnClick by rememberUpdatedState(onClick)
+    val fire = {
+        if (sound) sfx.play(Sfx.Sound.Pop)
+        currentOnClick()
+    }
     val scale by animateFloatAsState(
-        targetValue = if (pressed) 0.9f else 1f,
+        targetValue = if (pressed || holding) 0.9f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label = "press",
     )
@@ -69,11 +100,39 @@ fun BouncyBox(
             .shadow(6.dp, shape)
             .clip(shape)
             .background(color)
+            .drawBehind {
+                // ながおしの すすみぐあい
+                if (holdProgress.value > 0f) {
+                    drawRect(Color.White.copy(alpha = 0.55f), size = Size(size.width * holdProgress.value, size.height))
+                }
+            }
             .border(4.dp, Color.White, shape)
-            .clickable(interactionSource = interaction, indication = null) {
-                if (sound) sfx.play(Sfx.Sound.Pop)
-                onClick()
-            },
+            .then(
+                if (longPressMillis == null) {
+                    Modifier.clickable(interactionSource = interaction, indication = null) { fire() }
+                } else {
+                    Modifier
+                        .pointerInput(longPressMillis) {
+                            awaitEachGesture {
+                                awaitFirstDown()
+                                holding = true
+                                val fill = scope.launch {
+                                    holdProgress.snapTo(0f)
+                                    holdProgress.animateTo(1f, tween(longPressMillis.toInt(), easing = LinearEasing))
+                                }
+                                val released = withTimeoutOrNull(longPressMillis) { waitForUpOrCancellation() }
+                                if (released == null) {
+                                    fire()
+                                    waitForUpOrCancellation()
+                                }
+                                fill.cancel()
+                                holding = false
+                                scope.launch { holdProgress.snapTo(0f) }
+                            }
+                        }
+                        .semantics { onLongClick { fire(); true } }
+                },
+            ),
         contentAlignment = Alignment.Center,
         content = content,
     )

@@ -119,6 +119,7 @@ fun CountingScreen(onHome: () -> Unit, initialTarget: Int? = null, initialThing:
                         orderPref = if (random) "seq" else "random"
                         speaker.speak(if (random) "順番" else "ランダム")
                     },
+                    longPressMillis = SETTINGS_HOLD_MILLIS,
                     modifier = Modifier.size(150.dp, 64.dp),
                     corner = 32.dp,
                 ) {
@@ -202,6 +203,8 @@ fun CountingScreen(onHome: () -> Unit, initialTarget: Int? = null, initialThing:
                             BouncyBox(
                                 color = if (n == target) Palette.Orange else Palette.Yellow,
                                 onClick = { choose(n) },
+                                // あそんでいる 最中に 手が ふれても かわらないように ながおし
+                                longPressMillis = NUMBER_HOLD_MILLIS,
                                 modifier = Modifier.weight(1f).height(60.dp),
                                 corner = 30.dp,
                             ) {

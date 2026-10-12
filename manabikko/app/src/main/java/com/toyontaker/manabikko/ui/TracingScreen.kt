@@ -180,6 +180,7 @@ fun TracingScreen(onHome: () -> Unit, autoDemo: Boolean = true) {
                 BouncyBox(
                     color = if (script == "kata") Palette.Orange else Palette.Red,
                     onClick = { showSettings = true },
+                    longPressMillis = SETTINGS_HOLD_MILLIS,
                     modifier = Modifier.size(100.dp, 64.dp),
                     corner = 32.dp,
                 ) {

@@ -7,6 +7,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.em
 
+/** おとな向けの 設定ボタンの ながおし 時間。 */
+const val SETTINGS_HOLD_MILLIS = 1500L
+
+/** かずの 数字ボタンの ながおし 時間。 */
+const val NUMBER_HOLD_MILLIS = 1000L
+
 object Palette {
     val Background = Color(0xFFFFF8E7)
     val Ink = Color(0xFF5D4037)

@@ -11,7 +11,9 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ApplicationProvider
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.toyontaker.manabikko.ui.Celebration
@@ -78,7 +80,7 @@ class ScreenshotTest {
         rule.mainClock.advanceTimeBy(2300)
     }) { TracingScreen(onHome = {}) }
     @Test fun tracingSettings() = shot("tracing_settings", before = {
-        rule.onNodeWithText("あ→").performClick()
+        rule.onNodeWithText("あ→").performTouchInput { longClick(durationMillis = 1800) }
         rule.mainClock.advanceTimeBy(500)
     }) { TracingScreen(onHome = {}, autoDemo = false) }
     @Test fun tracing() = shot("tracing") { TracingScreen(onHome = {}, autoDemo = false) }
