@@ -35,13 +35,14 @@ import com.toyontaker.manabikko.LocalSpeaker
 import com.toyontaker.manabikko.Screen
 import kotlinx.coroutines.withTimeoutOrNull
 
-private data class MenuItem(val screen: Screen, val emoji: String, val label: String, val color: Color)
+/** say は 読み上げ用。 */
+private data class MenuItem(val screen: Screen, val emoji: String, val label: String, val color: Color, val say: String = label)
 
 private val menu = listOf(
     MenuItem(Screen.Hiragana, "あ", "ひらがな", Palette.Red),
     MenuItem(Screen.Katakana, "ア", "カタカナ", Palette.Orange),
-    MenuItem(Screen.Counting, "🍎", "かず", Palette.Green),
-    MenuItem(Screen.Tracing, "✏️", "なぞりがき", Palette.Blue),
+    MenuItem(Screen.Counting, "🍎", "かず", Palette.Green, "数"),
+    MenuItem(Screen.Tracing, "✏️", "なぞりがき", Palette.Blue, "なぞり書き"),
     MenuItem(Screen.Quiz, "❓", "クイズ", Palette.Purple),
 )
 
@@ -51,7 +52,7 @@ private const val LOCK_HOLD_MILLIS = 3000L
 @Composable
 fun HomeScreen(onOpen: (Screen) -> Unit, locked: Boolean = false, onToggleLock: () -> Unit = {}) {
     val speaker = LocalSpeaker.current
-    LaunchedEffect(speaker.ready) { speaker.speak("なにで あそぶ?") }
+    LaunchedEffect(speaker.ready) { speaker.speak("何して遊ぶ?") }
     val toggle by rememberUpdatedState(onToggleLock)
 
     val bob by rememberInfiniteTransition(label = "bob").animateFloat(
@@ -111,7 +112,7 @@ fun HomeScreen(onOpen: (Screen) -> Unit, locked: Boolean = false, onToggleLock: 
                             BouncyBox(
                                 color = item.color,
                                 onClick = {
-                                    speaker.speak(item.label)
+                                    speaker.speak(item.say)
                                     onOpen(item.screen)
                                 },
                                 modifier = Modifier.weight(1f).fillMaxSize(),

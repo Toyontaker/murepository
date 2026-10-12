@@ -48,7 +48,7 @@ fun KanaScreen(title: String, kanaSet: KanaSet, color: Color, onHome: () -> Unit
     val cells = kanaSet.table.flatten()
     var selected by rememberSaveable(title) { mutableIntStateOf(0) }
     val kana = cells[selected]!!
-    val say = { k: Kana -> speaker.speak("${k.char}。 ${k.word}") }
+    val say = { k: Kana -> speaker.speak(k.char, k.say) }
 
     fun move(step: Int) {
         var i = selected

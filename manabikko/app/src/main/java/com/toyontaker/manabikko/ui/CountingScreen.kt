@@ -60,10 +60,10 @@ fun CountingScreen(onHome: () -> Unit, initialTarget: Int = 1, initialThing: Int
     // タップした じゅんばん(どのアイテムが なんばんめ か)
     val order = remember(target, thingIndex) { mutableStateListOf<Int>() }
     var done by remember(target, thingIndex) { mutableStateOf(false) }
-    val (emoji, name, counter) = Numbers.things[thingIndex]
+    val (emoji, name, counter, say) = Numbers.things[thingIndex]
 
     LaunchedEffect(target, thingIndex, speaker.ready) {
-        speaker.speak("${name}を かぞえよう")
+        speaker.speak("${say}を数えよう")
     }
 
     fun choose(n: Int) {
@@ -78,10 +78,10 @@ fun CountingScreen(onHome: () -> Unit, initialTarget: Int = 1, initialThing: Int
         sfx.count(count)
         if (count == target) {
             done = true
-            speaker.speak("${counter.reading(count)}! ${name}は ${counter.reading(count)}。 よく できたね!")
+            speaker.speak(counter.say(count), "${say}は${counter.say(count)}。よくできたね!")
         } else {
             // 「いっぽん、にほん、さんぼん…」と じょすうしつきで かぞえる
-            speaker.speak(counter.reading(count))
+            speaker.speak(counter.say(count))
         }
     }
 

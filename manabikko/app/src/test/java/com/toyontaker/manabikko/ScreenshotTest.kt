@@ -58,13 +58,18 @@ class ScreenshotTest {
     @Test fun hiragana() = shot("hiragana") { KanaScreen("ひらがな", Hiragana, Palette.Red, onHome = {}) }
     @Test fun katakana() = shot("katakana") { KanaScreen("カタカナ", Katakana, Palette.Orange, onHome = {}) }
     @Test fun counting() = shot("counting", before = {
-        // ばなな 10ぽん のうち 4ほん かぞえた ところ
+        // えほん 10さつ のうち 4さつ かぞえた ところ
         listOf(0, 3, 6, 9).forEach { rule.onNodeWithTag("item_$it").performClick() }
         rule.mainClock.advanceTimeBy(1000)
-    }) { CountingScreen(onHome = {}, initialTarget = 10, initialThing = 1) }
-    @Test fun tracing() = shot("tracing") { TracingScreen(onHome = {}) }
+    }) { CountingScreen(onHome = {}, initialTarget = 10, initialThing = Numbers.things.indexOfFirst { it.counter == Counter.Satsu }) }
+    @Test fun tracingDemo() = shot("tracing_demo", before = {
+        // かきじゅん アニメーションの とちゅう(2画目を かいている ところ)
+        rule.mainClock.autoAdvance = false
+        rule.mainClock.advanceTimeBy(2300)
+    }) { TracingScreen(onHome = {}) }
+    @Test fun tracing() = shot("tracing") { TracingScreen(onHome = {}, autoDemo = false) }
     @Test fun quiz() = shot("quiz") {
-        val fish = Numbers.things.first { it.counter == Counter.Hiki }
-        QuizScreen(onHome = {}, firstQuestion = Question.HowMany(3, fish, listOf(1, 3, 6).map { fish.counter.label(it) }))
+        val shoes = Numbers.things.first { it.counter == Counter.Soku }
+        QuizScreen(onHome = {}, firstQuestion = Question.HowMany(3, shoes, listOf(1, 3, 5).map { shoes.counter.label(it) }))
     }
 }

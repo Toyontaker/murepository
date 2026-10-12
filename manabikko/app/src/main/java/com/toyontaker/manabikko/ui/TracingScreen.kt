@@ -1,5 +1,8 @@
 package com.toyontaker.manabikko.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -34,9 +37,10 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -48,6 +52,7 @@ import com.toyontaker.manabikko.data.Hiragana
 import com.toyontaker.manabikko.data.Katakana
 import com.toyontaker.manabikko.trace.Glyph
 import com.toyontaker.manabikko.trace.Grade
+import com.toyontaker.manabikko.trace.Strokes
 import kotlinx.coroutines.delay
 
 private class Line(val color: Color) {
@@ -56,11 +61,13 @@ private class Line(val color: Color) {
     fun toFloatArray() = FloatArray(points.size * 2) { i -> if (i % 2 == 0) points[i / 2].x else points[i / 2].y }
 }
 
-/** なぞりがき:うすく かいてある ひらがなを ゆびで なぞる。 */
+/** なぞりがき:うすく かいてある 文字を、書き順ガイドを 見ながら ゆびで なぞる。 */
 @Composable
-fun TracingScreen(onHome: () -> Unit) {
+fun TracingScreen(onHome: () -> Unit, autoDemo: Boolean = true) {
     val speaker = LocalSpeaker.current
     val sfx = LocalSfx.current
+    val context = LocalContext.current
+    val density = LocalDensity.current.density
     var useKatakana by rememberSaveable { mutableStateOf(false) }
     val letters = if (useKatakana) Katakana.all else Hiragana.all
     var index by rememberSaveable { mutableIntStateOf(0) }
@@ -70,13 +77,34 @@ fun TracingScreen(onHome: () -> Unit) {
     var grade by remember(kana) { mutableStateOf<Grade?>(null) }
     var lastGrade by remember { mutableStateOf(Grade.Good) }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
-    val glyph = remember(kana, canvasSize) {
-        Glyph(kana.char, canvasSize.width.toFloat(), canvasSize.height.toFloat())
+    val strokeData = remember(kana) { Strokes.get(context, kana.char) }
+    val glyph = remember(strokeData, canvasSize) {
+        Glyph(strokeData, canvasSize.width.toFloat(), canvasSize.height.toFloat())
     }
-    val templatePaint = remember(glyph) { glyph.paint(Palette.Faint.toArgb()) }
+    val guide = remember(glyph) { StrokeGuide(glyph, density) }
     val scorer = remember(glyph) { if (canvasSize == IntSize.Zero) null else glyph.scorer() }
 
-    LaunchedEffect(kana, speaker.ready) { speaker.speak("「${kana.char}」を なぞってみよう") }
+    // かきじゅん アニメーション(demoStroke が null の ときは とまっている)
+    var demoRequest by remember(kana) { mutableIntStateOf(if (autoDemo) 1 else 0) }
+    var demoStroke by remember(kana) { mutableStateOf<Int?>(null) }
+    val demoProgress = remember(kana) { Animatable(0f) }
+
+    LaunchedEffect(kana, speaker.ready) { speaker.speak("「${kana.char}」をなぞってみよう") }
+    LaunchedEffect(kana, demoRequest, canvasSize) {
+        if (demoRequest == 0 || canvasSize == IntSize.Zero) return@LaunchedEffect
+        delay(600)
+        for (i in strokeData.indices) {
+            demoStroke = i
+            demoProgress.snapTo(0f)
+            // 長い 線ほど ゆっくり(ゆびで かく はやさ くらい)
+            val millis = (glyph.length(i) / (glyph.strokeWidth * 9f) * 1000).toInt().coerceIn(500, 1600)
+            demoProgress.animateTo(1f, tween(millis, easing = LinearEasing))
+            delay(250)
+        }
+        demoStroke = strokeData.size
+        delay(500)
+        demoStroke = null
+    }
     LaunchedEffect(grade) {
         val g = grade ?: return@LaunchedEffect
         delay(2500)
@@ -89,7 +117,7 @@ fun TracingScreen(onHome: () -> Unit) {
         val result = scorer?.score(lines.map { it.toFloatArray() })
         if (lines.isEmpty() || result == null) {
             sfx.play(Sfx.Sound.Pop)
-            speaker.speak("ゆびで なぞってね")
+            speaker.speak("指でなぞってね")
             return
         }
         grade = result.grade
@@ -97,15 +125,15 @@ fun TracingScreen(onHome: () -> Unit) {
         when (result.grade) {
             Grade.Great -> {
                 sfx.play(Sfx.Sound.Fanfare)
-                speaker.speak("はなまる! とっても じょうず!")
+                speaker.speak("はなまる!とっても上手!")
             }
             Grade.Good -> {
                 sfx.play(Sfx.Sound.Correct)
-                speaker.speak("じょうずに かけたね!")
+                speaker.speak("上手に書けたね!")
             }
             Grade.Miss -> {
                 sfx.play(Sfx.Sound.Wrong)
-                speaker.speak("おしい! うすい もじの うえを なぞってみよう")
+                speaker.speak("惜しい!", "薄い字の上を、番号の順になぞってみよう")
             }
         }
     }
@@ -162,8 +190,8 @@ fun TracingScreen(onHome: () -> Unit) {
                     drawLine(dash, Offset(size.width / 2, 0f), Offset(size.width / 2, size.height), 4f)
                     drawLine(dash, Offset(0f, size.height / 2), Offset(size.width, size.height / 2), 4f)
 
-                    // おてほんの文字(うすい色)。採点と 同じ レイアウトで かく
-                    drawIntoCanvas { glyph.draw(it.nativeCanvas, templatePaint) }
+                    // おてほん と 書き順ガイド(つぎに かく 線 = かいた 線の 数 ばんめ)
+                    drawIntoCanvas { guide.draw(it.nativeCanvas, lines.size, demoStroke, demoProgress.value) }
 
                     // こどもが かいた線
                     val strokeWidth = minOf(size.width, size.height) * 0.05f
@@ -186,10 +214,29 @@ fun TracingScreen(onHome: () -> Unit) {
                     color = Palette.Ink,
                     modifier = Modifier.align(Alignment.TopStart).padding(16.dp),
                 )
-                SoundButton(
-                    onClick = { speaker.speak("${kana.char}。 ${kana.word}") },
-                    modifier = Modifier.align(Alignment.TopEnd).padding(12.dp),
-                )
+                Column(
+                    Modifier.align(Alignment.TopEnd).padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    SoundButton(onClick = { speaker.speak(kana.char, kana.say) })
+                    // かきじゅんを もういちど 見る
+                    BouncyBox(
+                        color = Palette.Orange,
+                        onClick = {
+                            lines.clear()
+                            demoRequest++
+                            speaker.speak("書き順を見てね")
+                        },
+                        modifier = Modifier.size(72.dp),
+                        corner = 36.dp,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("✍️", fontSize = 26.sp)
+                            Text("じゅん", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
+                        }
+                    }
+                }
             }
 
             Row(

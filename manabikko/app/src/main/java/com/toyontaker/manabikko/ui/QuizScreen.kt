@@ -55,19 +55,24 @@ internal sealed interface Question {
     val choices: List<String>
     val answer: String
 
-    /** せいかい したときの ことば */
-    val praise: String get() = "せいかい! すごいね!"
+    /** 読み上げ用の 問題文 */
+    val speech: String
+
+    /** せいかい したときの ことば(読み上げ用) */
+    val praise: String get() = "正解!すごいね!"
 
     /** 「『あ』は どれかな?」 */
     data class FindKana(override val answer: String, override val choices: List<String>) : Question {
         override val prompt get() = "「${answer}」は どれかな?"
+        override val speech get() = "「${answer}」はどれかな?"
     }
 
     /** 「りんごは いくつ?」 */
     data class HowMany(val count: Int, val thing: Thing, override val choices: List<String>) : Question {
         override val answer get() = thing.counter.label(count)
         override val prompt get() = "${thing.name}は ${thing.counter.question}?"
-        override val praise get() = "せいかい! ${thing.counter.reading(count)}!"
+        override val speech get() = "${thing.say}は${thing.counter.sayQuestion}?"
+        override val praise get() = "正解!${thing.counter.say(count)}!"
     }
 }
 
@@ -106,7 +111,7 @@ internal fun QuizScreen(onHome: () -> Unit, firstQuestion: Question = newQuestio
     val finished = number >= QUESTIONS_PER_ROUND
 
     LaunchedEffect(question, speaker.ready) {
-        if (!finished) speaker.speak(question.prompt)
+        if (!finished) speaker.speak(question.speech)
     }
     LaunchedEffect(correct) {
         if (correct) {
@@ -119,7 +124,7 @@ internal fun QuizScreen(onHome: () -> Unit, firstQuestion: Question = newQuestio
     }
     LaunchedEffect(finished) {
         if (finished) sfx.play(Sfx.Sound.Fanfare)
-        if (finished) speaker.speak("ぜんぶ おわったよ! ほしが ${stars}こ。 すごいね!")
+        if (finished) speaker.speak("全部終わったよ!", "星が${stars}個。すごいね!")
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -149,7 +154,7 @@ internal fun QuizScreen(onHome: () -> Unit, firstQuestion: Question = newQuestio
             } else {
                 QuestionView(
                     question = question,
-                    onRepeat = { speaker.speak(question.prompt) },
+                    onRepeat = { speaker.speak(question.speech) },
                     onAnswer = { choice ->
                         if (correct) return@QuestionView true
                         if (choice == question.answer) {
@@ -161,7 +166,7 @@ internal fun QuizScreen(onHome: () -> Unit, firstQuestion: Question = newQuestio
                         } else {
                             firstTry = false
                             sfx.play(Sfx.Sound.Wrong)
-                            speaker.speak("ちがうよ。 もういっかい!")
+                            speaker.speak("違うよ。もう一回!")
                             false
                         }
                     },

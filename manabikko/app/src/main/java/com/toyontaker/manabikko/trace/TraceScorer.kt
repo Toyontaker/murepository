@@ -116,8 +116,8 @@ class TraceScorer(
         const val MIN_DRAWN_CELLS = 6
 
         const val GOOD_PRECISION = 0.7f
-        const val GOOD_COVERAGE = 0.65f
+        const val GOOD_COVERAGE = 0.6f
         const val GREAT_PRECISION = 0.85f
-        const val GREAT_COVERAGE = 0.75f
+        const val GREAT_COVERAGE = 0.8f
     }
 }
