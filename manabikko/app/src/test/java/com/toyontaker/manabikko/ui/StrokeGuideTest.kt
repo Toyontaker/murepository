@@ -13,7 +13,7 @@ import org.robolectric.annotation.GraphicsMode
 /** 書き順ガイドが どんな 大きさ・状態でも 落ちないこと。 */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [34])
+@Config(sdk = [36])
 class StrokeGuideTest {
     private val data = Strokes.parse(java.io.File("src/main/assets/strokes.tsv").readText())
 

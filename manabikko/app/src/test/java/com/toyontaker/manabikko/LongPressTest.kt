@@ -26,7 +26,7 @@ import org.robolectric.annotation.GraphicsMode
 /** ちょっと さわった だけでは かわらず、ながおし で はじめて かわること。 */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [34], qualifiers = "w411dp-h891dp-xxhdpi")
+@Config(sdk = [36], qualifiers = "w411dp-h891dp-xxhdpi")
 class LongPressTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
 

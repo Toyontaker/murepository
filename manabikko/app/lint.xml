@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!--
+      これより新しい AndroidX / Compose は compileSdk 37 と AGP 9(Gradle 9)が必要。
+      Google Play の要件は targetSdk 36 なので、AGP 8.13 で使える最新に そろえている。
+    -->
+    <issue id="GradleDependency" severity="ignore" />
+    <issue id="NewerVersionAvailable" severity="ignore" />
+    <issue id="AndroidGradlePluginVersion" severity="ignore" />
+</lint>

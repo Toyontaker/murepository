@@ -6,6 +6,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.edit
 
 /** おとなが えらんだ 設定(じゅんばん など)を アプリを とじても おぼえておく。 */
 @Composable
@@ -18,7 +19,7 @@ fun rememberPref(key: String, default: String): MutableState<String> {
                 get() = state.value
                 set(v) {
                     state.value = v
-                    prefs.edit().putString(key, v).apply()
+                    prefs.edit { putString(key, v) }
                 }
             override fun component1() = value
             override fun component2(): (String) -> Unit = { value = it }

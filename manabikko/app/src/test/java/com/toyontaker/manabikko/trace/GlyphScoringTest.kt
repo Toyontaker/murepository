@@ -13,7 +13,7 @@ import java.util.Random
 /** ほんものの 書き順データを つかって 採点の かげんを たしかめる。 */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [34])
+@Config(sdk = [36])
 class GlyphScoringTest {
     private val width = 1000f
     private val height = 1300f

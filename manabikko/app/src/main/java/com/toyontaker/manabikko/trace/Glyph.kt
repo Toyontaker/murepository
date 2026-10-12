@@ -1,6 +1,5 @@
 package com.toyontaker.manabikko.trace
 
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
@@ -8,6 +7,7 @@ import android.graphics.Path
 import android.graphics.PathMeasure
 import android.graphics.PointF
 import androidx.core.graphics.PathParser
+import androidx.core.graphics.createBitmap
 import kotlin.math.hypot
 
 /**
@@ -63,7 +63,7 @@ class Glyph(strokeData: List<String>, val width: Float, val height: Float) {
         val cell = size / TraceScorer.GRID
         val cols = (width / cell).toInt().coerceAtLeast(1)
         val rows = (height / cell).toInt().coerceAtLeast(1)
-        val bitmap = Bitmap.createBitmap(cols, rows, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(cols, rows)
         val canvas = Canvas(bitmap)
         canvas.scale(1f / cell, 1f / cell)
         draw(canvas, strokePaint(android.graphics.Color.BLACK))

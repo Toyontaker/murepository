@@ -39,7 +39,7 @@ import org.robolectric.annotation.GraphicsMode
 /** 各画面を JVM 上で描画して PNG に保存する(`./gradlew recordRoborazziDebug`)。 */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [34], qualifiers = "w411dp-h891dp-xxhdpi")
+@Config(sdk = [36], qualifiers = "w411dp-h891dp-xxhdpi")
 class ScreenshotTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
 
