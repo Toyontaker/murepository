@@ -139,7 +139,7 @@ internal fun QuizScreen(onHome: () -> Unit, firstQuestion: Question = newQuestio
                     Text(
                         if (i < stars) "⭐" else "☆",
                         fontSize = 40.sp,
-                        color = Palette.Faint,
+                        color = Color(0xFF8D6E63),
                         modifier = Modifier.padding(horizontal = 4.dp),
                     )
                 }

@@ -16,6 +16,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ApplicationProvider
 import com.github.takahirom.roborazzi.captureRoboImage
+import com.toyontaker.manabikko.ui.AboutScreen
 import com.toyontaker.manabikko.ui.Celebration
 import com.toyontaker.manabikko.ui.CountingScreen
 import com.toyontaker.manabikko.ui.KanaScreen
@@ -58,6 +59,7 @@ class ScreenshotTest {
         rule.onRoot().captureRoboImage("screenshots/$name.png")
     }
 
+    @Test fun about() = shot("about") { AboutScreen(onHome = {}, speechReady = false) }
     @Test fun home() = shot("home") { HomeScreen(onOpen = {}) }
     @Test fun hiragana() = shot("hiragana") { KanaScreen("ひらがな", Hiragana, Palette.Red, onHome = {}) }
     @Test fun katakana() = shot("katakana") { KanaScreen("カタカナ", Katakana, Palette.Orange, onHome = {}) }

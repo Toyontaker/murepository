@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,7 +51,12 @@ private val menu = listOf(
 private const val LOCK_HOLD_MILLIS = 3000L
 
 @Composable
-fun HomeScreen(onOpen: (Screen) -> Unit, locked: Boolean = false, onToggleLock: () -> Unit = {}) {
+fun HomeScreen(
+    onOpen: (Screen) -> Unit,
+    locked: Boolean = false,
+    onToggleLock: () -> Unit = {},
+    onAbout: () -> Unit = {},
+) {
     val speaker = LocalSpeaker.current
     LaunchedEffect(speaker.ready) { speaker.speak("何して遊ぶ?") }
     val toggle by rememberUpdatedState(onToggleLock)
@@ -65,10 +71,14 @@ fun HomeScreen(onOpen: (Screen) -> Unit, locked: Boolean = false, onToggleLock: 
     BoxWithConstraints(Modifier.fillMaxSize().padding(16.dp)) {
         val wide = maxWidth > maxHeight
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(Modifier.fillMaxWidth()) {
+            // 🔒 ・ タイトル ・ ℹ️ を かさならないように ならべる
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                    if (locked) Text("🔒", fontSize = 22.sp)
+                }
                 Row(
                     Modifier
-                        .align(Alignment.Center)
+                        .weight(1f)
                         .pointerInput(Unit) {
                             awaitEachGesture {
                                 awaitFirstDown()
@@ -80,19 +90,29 @@ fun HomeScreen(onOpen: (Screen) -> Unit, locked: Boolean = false, onToggleLock: 
                             }
                         },
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
                 ) {
-                    Text("🐣", fontSize = 44.sp, modifier = Modifier.graphicsLayer { translationY = bob })
+                    Text("🐣", fontSize = 36.sp, modifier = Modifier.graphicsLayer { translationY = bob })
                     Text(
                         "まなびっこ",
-                        fontSize = 40.sp,
+                        fontSize = 34.sp,
                         fontWeight = FontWeight.Black,
                         color = Palette.Ink,
-                        modifier = Modifier.padding(horizontal = 12.dp),
+                        maxLines = 1,
+                        modifier = Modifier.padding(horizontal = 8.dp),
                     )
-                    Text("🌈", fontSize = 44.sp, modifier = Modifier.graphicsLayer { translationY = -bob })
+                    Text("🌈", fontSize = 36.sp, modifier = Modifier.graphicsLayer { translationY = -bob })
                 }
-                if (locked) {
-                    Text("🔒", fontSize = 20.sp, modifier = Modifier.align(Alignment.TopEnd))
+                // おとな向け:アプリについて(ながおしで ひらく)
+                BouncyBox(
+                    color = Palette.Background,
+                    onClick = onAbout,
+                    longPressMillis = SETTINGS_HOLD_MILLIS,
+                    label = "このアプリについて(ながおし)",
+                    modifier = Modifier.size(48.dp),
+                    corner = 24.dp,
+                ) {
+                    Text("ℹ️", fontSize = 22.sp)
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -119,7 +139,7 @@ fun HomeScreen(onOpen: (Screen) -> Unit, locked: Boolean = false, onToggleLock: 
                                 corner = 40.dp,
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(item.emoji, fontSize = 64.sp, fontWeight = FontWeight.Black, color = Color.White)
+                                    Text(item.emoji, fontSize = 64.sp, fontWeight = FontWeight.Black, color = Palette.Ink)
                                     Text(item.label, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
                                 }
                             }

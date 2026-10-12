@@ -181,6 +181,7 @@ fun TracingScreen(onHome: () -> Unit, autoDemo: Boolean = true) {
                     color = if (script == "kata") Palette.Orange else Palette.Red,
                     onClick = { showSettings = true },
                     longPressMillis = SETTINGS_HOLD_MILLIS,
+                    label = "もじと じゅんばんの せってい(ながおし)",
                     modifier = Modifier.size(100.dp, 64.dp),
                     corner = 32.dp,
                 ) {
@@ -262,6 +263,7 @@ fun TracingScreen(onHome: () -> Unit, autoDemo: Boolean = true) {
                         },
                         modifier = Modifier.size(72.dp),
                         corner = 36.dp,
+                        label = "かきじゅんを みる",
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("✍️", fontSize = 26.sp)
@@ -276,13 +278,13 @@ fun TracingScreen(onHome: () -> Unit, autoDemo: Boolean = true) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                ToolButton("◀", Palette.Yellow) { goPrevious() }
+                ToolButton("◀", Palette.Yellow, description = "まえの もじ") { goPrevious() }
                 ToolButton("🧽", Palette.Pink, Modifier.weight(1f), label = "けす", sound = false) {
                     sfx.play(Sfx.Sound.Swish)
                     lines.clear()
                 }
                 ToolButton("💮", Palette.Green, Modifier.weight(1f), label = "できた", sound = false) { check() }
-                ToolButton("▶", Palette.Yellow) { goNext() }
+                ToolButton("▶", Palette.Yellow, description = "つぎの もじ") { goNext() }
             }
         }
         // けっかを ひょうじ(きえていく あいだも 前の けっかを だす)
@@ -396,9 +398,10 @@ private fun ToolButton(
     modifier: Modifier = Modifier,
     label: String? = null,
     sound: Boolean = true,
+    description: String? = null,
     onClick: () -> Unit,
 ) {
-    BouncyBox(color = color, onClick = onClick, sound = sound, modifier = modifier.height(76.dp).then(if (label == null) Modifier.size(64.dp, 76.dp) else Modifier), corner = 38.dp) {
+    BouncyBox(color = color, onClick = onClick, sound = sound, label = description, modifier = modifier.height(76.dp).then(if (label == null) Modifier.size(64.dp, 76.dp) else Modifier), corner = 38.dp) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(icon, fontSize = 24.sp, color = Palette.Ink)
             if (label != null) Text(label, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, maxLines = 1, softWrap = false, modifier = Modifier.padding(start = 4.dp))

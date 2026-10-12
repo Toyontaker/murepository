@@ -52,6 +52,11 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
         }
     }
 
+    /** しゃべっている とちゅうでも とめる。 */
+    fun stop() {
+        if (ready) tts.stop()
+    }
+
     fun shutdown() {
         tts.stop()
         tts.shutdown()

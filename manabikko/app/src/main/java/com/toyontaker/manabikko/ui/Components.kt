@@ -55,6 +55,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.sp
 import com.toyontaker.manabikko.LocalSfx
@@ -75,6 +78,8 @@ fun BouncyBox(
     corner: Dp = 28.dp,
     sound: Boolean = true,
     longPressMillis: Long? = null,
+    /** 絵文字だけの ボタンの 読み上げ用ラベル(TalkBack など)。 */
+    label: String? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val sfx = LocalSfx.current
@@ -132,7 +137,11 @@ fun BouncyBox(
                         }
                         .semantics { onLongClick { fire(); true } }
                 },
-            ),
+            )
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                if (label != null) contentDescription = label
+            },
         contentAlignment = Alignment.Center,
         content = content,
     )
@@ -148,7 +157,7 @@ fun TopBar(title: String, color: Color, onHome: () -> Unit, trailing: @Composabl
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        BouncyBox(color = Color.White, onClick = onHome, modifier = Modifier.size(64.dp), corner = 32.dp) {
+        BouncyBox(color = Color.White, onClick = onHome, modifier = Modifier.size(64.dp), corner = 32.dp, label = "おうちに もどる") {
             Text("🏠", fontSize = 32.sp)
         }
         Box(
@@ -205,7 +214,7 @@ fun Celebration(visible: Boolean, emoji: String, message: String) {
 /** おとを もういちど きく ボタン。 */
 @Composable
 fun SoundButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    BouncyBox(color = Palette.Yellow, onClick = onClick, modifier = modifier.size(72.dp), corner = 36.dp) {
+    BouncyBox(color = Palette.Yellow, onClick = onClick, modifier = modifier.size(72.dp), corner = 36.dp, label = "もういちど きく") {
         Text("🔊", fontSize = 34.sp)
     }
 }
@@ -224,3 +233,6 @@ fun Badge(text: String, color: Color, modifier: Modifier = Modifier) {
         Text(text, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
     }
 }
+
+/** 白い 文字を のせても 読みやすい 赤(コントラスト 4.5 以上)。 */
+val BadgeRed = Color(0xFFD32F2F)

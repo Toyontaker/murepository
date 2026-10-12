@@ -83,7 +83,7 @@ fun KanaScreen(title: String, kanaSet: KanaSet, color: Color, onHome: () -> Unit
 @Composable
 private fun KanaCard(kana: Kana, onTap: () -> Unit, onPrev: () -> Unit, onNext: () -> Unit, modifier: Modifier) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        ArrowButton("◀", onPrev)
+        ArrowButton("◀", "まえの もじ", onPrev)
         BouncyBox(color = Color.White, onClick = onTap, modifier = Modifier.weight(1f).fillMaxSize().padding(8.dp), corner = 36.dp) {
             AnimatedContent(
                 targetState = kana,
@@ -102,13 +102,13 @@ private fun KanaCard(kana: Kana, onTap: () -> Unit, onPrev: () -> Unit, onNext: 
                 }
             }
         }
-        ArrowButton("▶", onNext)
+        ArrowButton("▶", "つぎの もじ", onNext)
     }
 }
 
 @Composable
-private fun ArrowButton(label: String, onClick: () -> Unit) {
-    BouncyBox(color = Palette.Yellow, onClick = onClick, modifier = Modifier.size(64.dp), corner = 32.dp) {
+private fun ArrowButton(label: String, description: String, onClick: () -> Unit) {
+    BouncyBox(color = Palette.Yellow, onClick = onClick, modifier = Modifier.size(64.dp), corner = 32.dp, label = description) {
         Text(label, fontSize = 28.sp, color = Palette.Ink)
     }
 }

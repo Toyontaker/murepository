@@ -256,7 +256,7 @@ private fun CountItem(emoji: String, number: Int?, size: Dp, onTap: () -> Unit, 
             Text(emoji, fontSize = (size.value * 0.48f).sp)
         }
         if (number != null) {
-            Badge(number.toString(), Color(0xFFE53935), Modifier.align(Alignment.TopEnd))
+            Badge(number.toString(), BadgeRed, Modifier.align(Alignment.TopEnd))
         }
     }
 }
