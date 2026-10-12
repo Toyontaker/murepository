@@ -14,6 +14,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,6 +52,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -173,6 +179,90 @@ fun TracingScreen(onHome: () -> Unit, autoDemo: Boolean = true) {
         }
     }
 
+    fun erase() {
+        sfx.play(Sfx.Sound.Swish)
+        lines.clear()
+    }
+
+    // おてほん と こどもが かく 紙
+    val canvasArea: @Composable BoxScope.() -> Unit = {
+        Canvas(
+            Modifier
+                .fillMaxSize()
+                .testTag("trace_canvas")
+                .onSizeChanged { canvasSize = it }
+                .pointerInput(kana) {
+                    detectDragGestures(
+                        onDragStart = { start ->
+                            val line = Line(Palette.pens[lines.size % Palette.pens.size])
+                            line.points += start
+                            lines += line
+                        },
+                        onDrag = { change, _ ->
+                            change.consume()
+                            lines.lastOrNull()?.points?.add(change.position)
+                        },
+                    )
+                },
+        ) {
+            // 十字の ガイド線
+            val dash = Color(0xFFF0E6D6)
+            drawLine(dash, Offset(size.width / 2, 0f), Offset(size.width / 2, size.height), 4f)
+            drawLine(dash, Offset(0f, size.height / 2), Offset(size.width, size.height / 2), 4f)
+
+            // おてほん と 書き順ガイド(つぎに かく 線 = かいた 線の 数 ばんめ)
+            // (画面に でた 直後は 大きさが まだ わからないので、わかってから かく)
+            if (guide != null) {
+                drawIntoCanvas { guide.draw(it.nativeCanvas, lines.size, demoStroke, demoProgress.value) }
+            }
+
+            // こどもが かいた線
+            val strokeWidth = minOf(size.width, size.height) * 0.05f
+            lines.forEach { line ->
+                val pts = line.points
+                if (pts.size == 1) {
+                    drawCircle(line.color, strokeWidth / 2, pts[0])
+                } else if (pts.size > 1) {
+                    val path = Path().apply {
+                        moveTo(pts[0].x, pts[0].y)
+                        for (p in pts.drop(1)) lineTo(p.x, p.y)
+                    }
+                    drawPath(path, line.color, style = Stroke(strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round))
+                }
+            }
+        }
+        Text(
+            "${kana.emoji} ${kana.word}",
+            fontSize = 28.sp,
+            color = Palette.Ink,
+            modifier = Modifier.align(Alignment.TopStart).padding(16.dp),
+        )
+        Column(
+            Modifier.align(Alignment.TopEnd).padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            SoundButton(onClick = { speaker.speak(kana.char, kana.say) })
+            // かきじゅんを もういちど 見る
+            BouncyBox(
+                color = Palette.Orange,
+                onClick = {
+                    lines.clear()
+                    demoRequest++
+                    speaker.speak("書き順を見てね")
+                },
+                modifier = Modifier.size(72.dp),
+                corner = 36.dp,
+                label = "かきじゅんを みる",
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("✍️", fontSize = 26.sp)
+                    Text("じゅん", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
+                }
+            }
+        }
+    }
+
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             TopBar("なぞりがき", Palette.Blue, onHome) {
@@ -185,106 +275,47 @@ fun TracingScreen(onHome: () -> Unit, autoDemo: Boolean = true) {
                     modifier = Modifier.size(100.dp, 64.dp),
                     corner = 32.dp,
                 ) {
-                    Text(orderLabel(kanaSet, order), fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, maxLines = 1)
+                    FitText(orderLabel(kanaSet, order), fontSize = 26.sp, modifier = Modifier.padding(horizontal = 8.dp))
                 }
             }
 
-            Box(
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+            // 横長(スマホを よこ向き など)の ときは ボタンを 右に ならべて、かく ところを 広く する
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                val wide = maxWidth > maxHeight * 1.3f
+                val paper = Modifier
                     .padding(16.dp)
                     .clip(RoundedCornerShape(36.dp))
-                    .background(Color.White),
-            ) {
-                Canvas(
-                    Modifier
-                        .fillMaxSize()
-                        .onSizeChanged { canvasSize = it }
-                        .pointerInput(kana) {
-                            detectDragGestures(
-                                onDragStart = { start ->
-                                    val line = Line(Palette.pens[lines.size % Palette.pens.size])
-                                    line.points += start
-                                    lines += line
-                                },
-                                onDrag = { change, _ ->
-                                    change.consume()
-                                    lines.lastOrNull()?.points?.add(change.position)
-                                },
-                            )
-                        },
-                ) {
-                    // 十字の ガイド線
-                    val dash = Color(0xFFF0E6D6)
-                    drawLine(dash, Offset(size.width / 2, 0f), Offset(size.width / 2, size.height), 4f)
-                    drawLine(dash, Offset(0f, size.height / 2), Offset(size.width, size.height / 2), 4f)
-
-                    // おてほん と 書き順ガイド(つぎに かく 線 = かいた 線の 数 ばんめ)
-                    // (画面に でた 直後は 大きさが まだ わからないので、わかってから かく)
-                    if (guide != null) {
-                        drawIntoCanvas { guide.draw(it.nativeCanvas, lines.size, demoStroke, demoProgress.value) }
-                    }
-
-                    // こどもが かいた線
-                    val strokeWidth = minOf(size.width, size.height) * 0.05f
-                    lines.forEach { line ->
-                        val pts = line.points
-                        if (pts.size == 1) {
-                            drawCircle(line.color, strokeWidth / 2, pts[0])
-                        } else if (pts.size > 1) {
-                            val path = Path().apply {
-                                moveTo(pts[0].x, pts[0].y)
-                                for (p in pts.drop(1)) lineTo(p.x, p.y)
+                    .background(Color.White)
+                if (wide) {
+                    Row(Modifier.fillMaxSize()) {
+                        Box(paper.weight(1f).fillMaxHeight()) { canvasArea() }
+                        Column(
+                            Modifier.width(180.dp).fillMaxHeight().padding(top = 16.dp, bottom = 16.dp, end = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+                        ) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                ToolButton("◀", Palette.Yellow, Modifier.weight(1f), description = "まえの もじ") { goPrevious() }
+                                ToolButton("▶", Palette.Yellow, Modifier.weight(1f), description = "つぎの もじ") { goNext() }
                             }
-                            drawPath(path, line.color, style = Stroke(strokeWidth, cap = StrokeCap.Round, join = StrokeJoin.Round))
+                            ToolButton("🧽", Palette.Pink, Modifier.fillMaxWidth(), label = "けす", sound = false) { erase() }
+                            ToolButton("💮", Palette.Green, Modifier.fillMaxWidth(), label = "できた", sound = false) { check() }
+                        }
+                    }
+                } else {
+                    Column(Modifier.fillMaxSize()) {
+                        Box(paper.weight(1f).fillMaxWidth()) { canvasArea() }
+                        Row(
+                            Modifier.fillMaxWidth().height(100.dp).padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            ToolButton("◀", Palette.Yellow, description = "まえの もじ") { goPrevious() }
+                            ToolButton("🧽", Palette.Pink, Modifier.weight(1f), label = "けす", sound = false) { erase() }
+                            ToolButton("💮", Palette.Green, Modifier.weight(1f), label = "できた", sound = false) { check() }
+                            ToolButton("▶", Palette.Yellow, description = "つぎの もじ") { goNext() }
                         }
                     }
                 }
-                Text(
-                    "${kana.emoji} ${kana.word}",
-                    fontSize = 28.sp,
-                    color = Palette.Ink,
-                    modifier = Modifier.align(Alignment.TopStart).padding(16.dp),
-                )
-                Column(
-                    Modifier.align(Alignment.TopEnd).padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    SoundButton(onClick = { speaker.speak(kana.char, kana.say) })
-                    // かきじゅんを もういちど 見る
-                    BouncyBox(
-                        color = Palette.Orange,
-                        onClick = {
-                            lines.clear()
-                            demoRequest++
-                            speaker.speak("書き順を見てね")
-                        },
-                        modifier = Modifier.size(72.dp),
-                        corner = 36.dp,
-                        label = "かきじゅんを みる",
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("✍️", fontSize = 26.sp)
-                            Text("じゅん", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
-                        }
-                    }
-                }
-            }
-
-            Row(
-                Modifier.fillMaxWidth().height(100.dp).padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                ToolButton("◀", Palette.Yellow, description = "まえの もじ") { goPrevious() }
-                ToolButton("🧽", Palette.Pink, Modifier.weight(1f), label = "けす", sound = false) {
-                    sfx.play(Sfx.Sound.Swish)
-                    lines.clear()
-                }
-                ToolButton("💮", Palette.Green, Modifier.weight(1f), label = "できた", sound = false) { check() }
-                ToolButton("▶", Palette.Yellow, description = "つぎの もじ") { goNext() }
             }
         }
         // けっかを ひょうじ(きえていく あいだも 前の けっかを だす)
@@ -401,10 +432,17 @@ private fun ToolButton(
     description: String? = null,
     onClick: () -> Unit,
 ) {
-    BouncyBox(color = color, onClick = onClick, sound = sound, label = description, modifier = modifier.height(76.dp).then(if (label == null) Modifier.size(64.dp, 76.dp) else Modifier), corner = 38.dp) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+    BouncyBox(
+        color = color,
+        onClick = onClick,
+        sound = sound,
+        label = description,
+        modifier = modifier.height(76.dp).then(if (label == null) Modifier.widthIn(min = 64.dp) else Modifier),
+        corner = 38.dp,
+    ) {
+        Row(Modifier.padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(icon, fontSize = 24.sp, color = Palette.Ink)
-            if (label != null) Text(label, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, maxLines = 1, softWrap = false, modifier = Modifier.padding(start = 4.dp))
+            if (label != null) FitText(label, fontSize = 22.sp, modifier = Modifier.weight(1f, fill = false).padding(start = 4.dp))
         }
     }
 }

@@ -28,6 +28,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -98,7 +102,11 @@ private fun howMany(): Question {
 }
 
 @Composable
-internal fun QuizScreen(onHome: () -> Unit, firstQuestion: Question = newQuestion()) {
+internal fun QuizScreen(
+    onHome: () -> Unit,
+    questions: () -> Question = ::newQuestion,
+    firstQuestion: Question = questions(),
+) {
     val speaker = LocalSpeaker.current
     val sfx = LocalSfx.current
     var round by remember { mutableIntStateOf(0) }
@@ -119,7 +127,7 @@ internal fun QuizScreen(onHome: () -> Unit, firstQuestion: Question = newQuestio
             correct = false
             firstTry = true
             number += 1
-            if (number < QUESTIONS_PER_ROUND) question = newQuestion()
+            if (number < QUESTIONS_PER_ROUND) question = questions()
         }
     }
     LaunchedEffect(finished) {
@@ -149,7 +157,7 @@ internal fun QuizScreen(onHome: () -> Unit, firstQuestion: Question = newQuestio
                 Finished(stars, onAgain = {
                     round += 1
                     firstTry = true
-                    question = newQuestion()
+                    question = questions()
                 }, onHome = onHome)
             } else {
                 QuestionView(
@@ -182,50 +190,89 @@ internal fun QuizScreen(onHome: () -> Unit, firstQuestion: Question = newQuestio
 @Composable
 private fun QuestionView(question: Question, onRepeat: () -> Unit, onAnswer: (String) -> Boolean, modifier: Modifier) {
     BoxWithConstraints(modifier.fillMaxWidth().padding(16.dp)) {
-        val tile = minOf(maxWidth / 3.4f, maxHeight / 3f)
-        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        // よこ長の 画面では、もんだいを 左、こたえを 右に たてに ならべる
+        val wide = maxWidth > maxHeight * 1.3f
+        val prompt: @Composable () -> Unit = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    question.prompt,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Palette.Ink,
-                    textAlign = TextAlign.Center,
-                )
+                FitText(question.prompt, fontSize = 32.sp, modifier = Modifier.weight(1f, fill = false))
                 Spacer(Modifier.size(12.dp))
                 SoundButton(onClick = onRepeat)
             }
 
+        }
+        val items: @Composable ColumnScope.() -> Unit = {
             // かずの もんだいは、かぞえる ものを みせる
-            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+            // (よこ向きで 高さが たりない ときも 見えるように、あいている 大きさに あわせる)
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                 if (question is Question.HowMany) {
-                    FlowRow(
+                    val n = question.count
+                    // いちばん 大きく ならべられる れつの数を えらぶ
+                    val gap = 8.dp
+                    val (cols, item) = (1..n).map { c ->
+                        val rows = (n + c - 1) / c
+                        c to minOf((maxWidth - 32.dp) / c - gap, (maxHeight - 32.dp) / rows - gap)
+                    }.maxBy { it.second }.let { (c, size) -> c to size.coerceIn(16.dp, 120.dp) }
+                    val emojiSize = with(LocalDensity.current) { (item * 0.85f).toSp() }
+                    Column(
                         Modifier
                             .clip(RoundedCornerShape(32.dp))
                             .background(Color.White)
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                            .padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(gap),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        repeat(question.count) { Text(question.thing.emoji, fontSize = 56.sp) }
+                        (0 until n).chunked(cols).forEach { row ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                                row.forEach {
+                                    Box(Modifier.size(item), contentAlignment = Alignment.Center) {
+                                        Text(question.thing.emoji, fontSize = emojiSize, lineHeight = emojiSize)
+                                    }
+                                }
+                            }
+                        }
                     }
                 } else {
-                    Text("👀", fontSize = 72.sp)
+                    val eyes = with(LocalDensity.current) { minOf(72.dp, maxHeight * 0.8f).toSp() }
+                    Text("👀", fontSize = eyes, lineHeight = eyes)
                 }
             }
 
-            Row(
-                Modifier.fillMaxWidth().height(tile + 16.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                question.choices.forEachIndexed { i, choice ->
-                    ChoiceTile(
-                        text = choice,
-                        color = listOf(Palette.Red, Palette.Green, Palette.Blue)[i],
-                        size = tile,
-                        key = question,
-                        onClick = { onAnswer(choice) },
-                    )
+        }
+        val choice: @Composable (Int, Dp) -> Unit = { i, tile ->
+            val text = question.choices[i]
+            ChoiceTile(
+                text = text,
+                color = listOf(Palette.Red, Palette.Green, Palette.Blue)[i],
+                size = tile,
+                key = question,
+                onClick = { onAnswer(text) },
+            )
+        }
+        if (wide) {
+            val tile = minOf(maxHeight / 3.4f, maxWidth / 4.5f)
+            Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    prompt()
+                    items()
+                }
+                Column(
+                    Modifier.fillMaxHeight().padding(start = 16.dp),
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                ) {
+                    question.choices.indices.forEach { choice(it, tile) }
+                }
+            }
+        } else {
+            val tile = minOf(maxWidth / 3.4f, maxHeight / 3f)
+            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                prompt()
+                items()
+                Row(
+                    Modifier.fillMaxWidth().height(tile + 16.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    question.choices.indices.forEach { choice(it, tile) }
                 }
             }
         }
@@ -233,7 +280,7 @@ private fun QuestionView(question: Question, onRepeat: () -> Unit, onAnswer: (St
 }
 
 @Composable
-private fun ChoiceTile(text: String, color: Color, size: androidx.compose.ui.unit.Dp, key: Any, onClick: () -> Boolean) {
+private fun ChoiceTile(text: String, color: Color, size: Dp, key: Any, onClick: () -> Boolean) {
     val shake = remember(key) { Animatable(0f) }
     val scope = rememberCoroutineScope()
     BouncyBox(

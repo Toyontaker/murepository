@@ -109,7 +109,9 @@ fun CountingScreen(onHome: () -> Unit, initialTarget: Int? = null, initialThing:
         }
     }
 
-    Box(Modifier.fillMaxSize()) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        // よこ向きの ときは 数字ボタンを 1れつに して、かぞえる ものを 大きく する
+        val wide = maxWidth > maxHeight
         Column(Modifier.fillMaxSize()) {
             TopBar("かず", Palette.Green, onHome) {
                 // じゅんばん ⇔ ランダム きりかえ
@@ -123,7 +125,7 @@ fun CountingScreen(onHome: () -> Unit, initialTarget: Int? = null, initialThing:
                     modifier = Modifier.size(150.dp, 64.dp),
                     corner = 32.dp,
                 ) {
-                    Text(if (random) "🎲 ランダム" else "1→2→3", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, maxLines = 1)
+                    FitText(if (random) "🎲 ランダム" else "1→2→3", fontSize = 22.sp, modifier = Modifier.padding(horizontal = 10.dp))
                 }
             }
 
@@ -197,7 +199,7 @@ fun CountingScreen(onHome: () -> Unit, initialTarget: Int? = null, initialThing:
                 Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                (1..10).chunked(5).forEach { row ->
+                (1..10).chunked(if (wide) 10 else 5).forEach { row ->
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         row.forEach { n ->
                             BouncyBox(

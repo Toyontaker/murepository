@@ -93,13 +93,11 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.Center,
                 ) {
                     Text("🐣", fontSize = 36.sp, modifier = Modifier.graphicsLayer { translationY = bob })
-                    Text(
+                    FitText(
                         "まなびっこ",
                         fontSize = 34.sp,
                         fontWeight = FontWeight.Black,
-                        color = Palette.Ink,
-                        maxLines = 1,
-                        modifier = Modifier.padding(horizontal = 8.dp),
+                        modifier = Modifier.weight(1f, fill = false).padding(horizontal = 8.dp),
                     )
                     Text("🌈", fontSize = 36.sp, modifier = Modifier.graphicsLayer { translationY = -bob })
                 }
@@ -140,7 +138,7 @@ fun HomeScreen(
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(item.emoji, fontSize = 64.sp, fontWeight = FontWeight.Black, color = Palette.Ink)
-                                    Text(item.label, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
+                                    FitText(item.label, fontSize = 28.sp, modifier = Modifier.padding(horizontal = 8.dp))
                                 }
                             }
                         }

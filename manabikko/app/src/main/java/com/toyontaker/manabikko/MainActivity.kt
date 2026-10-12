@@ -21,8 +21,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -38,9 +36,6 @@ import com.toyontaker.manabikko.ui.QuizScreen
 import com.toyontaker.manabikko.ui.TracingScreen
 
 enum class Screen { Home, Hiragana, Katakana, Counting, Tracing, Quiz, About }
-
-/** 端末の 文字サイズ設定の 上限(これより 大きくは しない)。 */
-private const val MAX_FONT_SCALE = 1.15f
 
 class MainActivity : ComponentActivity() {
     private lateinit var speaker: Speaker
@@ -58,15 +53,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             ManabikkoTheme {
-                // 端末の 文字サイズ設定が 大きいと ボタンから 文字が はみだすので、上限を もうける
-                // (もともと 大きな 文字を つかっている)
-                val density = LocalDensity.current
-                val cappedDensity = Density(density.density, density.fontScale.coerceAtMost(MAX_FONT_SCALE))
-                CompositionLocalProvider(
-                    LocalSpeaker provides speaker,
-                    LocalSfx provides sfx,
-                    LocalDensity provides cappedDensity,
-                ) {
+                CompositionLocalProvider(LocalSpeaker provides speaker, LocalSfx provides sfx) {
                     var screen by rememberSaveable { mutableStateOf(Screen.Home) }
                     // ホームでは もどるボタンを むしして、うっかり アプリが とじないようにする
                     BackHandler {

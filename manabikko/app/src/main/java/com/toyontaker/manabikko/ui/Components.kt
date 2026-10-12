@@ -60,6 +60,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.foundation.text.TextAutoSize
 import com.toyontaker.manabikko.LocalSfx
 import com.toyontaker.manabikko.Sfx
 
@@ -160,15 +162,17 @@ fun TopBar(title: String, color: Color, onHome: () -> Unit, trailing: @Composabl
         BouncyBox(color = Color.White, onClick = onHome, modifier = Modifier.size(64.dp), corner = 32.dp, label = "おうちに もどる") {
             Text("🏠", fontSize = 32.sp)
         }
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(32.dp))
-                .background(color)
-                .padding(horizontal = 24.dp, vertical = 8.dp),
-        ) {
-            Text(title, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
+        // タイトルは のこりの はばに おさまるよう 自動で 小さくなる
+        Box(Modifier.weight(1f)) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(color)
+                    .padding(horizontal = 24.dp, vertical = 8.dp),
+            ) {
+                FitText(title, fontSize = 28.sp)
+            }
         }
-        Spacer(Modifier.weight(1f))
         trailing()
     }
 }
@@ -232,6 +236,26 @@ fun Badge(text: String, color: Color, modifier: Modifier = Modifier) {
     ) {
         Text(text, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
     }
+}
+
+/** 1行に おさまるよう、はいりきらない ときだけ 自動で 小さくなる 文字。 */
+@Composable
+fun FitText(
+    text: String,
+    fontSize: TextUnit,
+    modifier: Modifier = Modifier,
+    color: Color = Palette.Ink,
+    fontWeight: FontWeight = FontWeight.Bold,
+) {
+    Text(
+        text,
+        modifier = modifier,
+        color = color,
+        fontWeight = fontWeight,
+        maxLines = 1,
+        softWrap = false,
+        autoSize = TextAutoSize.StepBased(minFontSize = 10.sp, maxFontSize = fontSize, stepSize = 1.sp),
+    )
 }
 
 /** 白い 文字を のせても 読みやすい 赤(コントラスト 4.5 以上)。 */
