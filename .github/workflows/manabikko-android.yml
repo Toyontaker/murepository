@@ -31,7 +31,7 @@ jobs:
           java-version: "21"
           cache: gradle
       - name: Lint, tests, release bundle
-        run: ./gradlew --no-daemon lintDebug lintRelease testDebugUnitTest assembleRelease bundleRelease
+        run: ./gradlew --no-daemon --continue lintDebug lintRelease testDebugUnitTest assembleRelease bundleRelease
       - uses: actions/upload-artifact@v4
         if: always()
         with:

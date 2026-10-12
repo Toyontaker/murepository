@@ -65,7 +65,11 @@ class DeviceSmokeTest {
 
     @Test fun kanaCardsAllTappable() {
         open("ひらがな")
-        for (ch in listOf("あ", "か", "さ", "ん")) rule.onNodeWithText(ch).performClick()
+        // カードに 出ている 文字と かぶらないよう、毎回 ちがう 文字を おす
+        for (ch in listOf("か", "さ", "た", "な")) {
+            rule.onNodeWithText(ch).performClick()
+            rule.waitForIdle()
+        }
         rule.onNodeWithContentDescription("つぎの もじ").performClick()
         home()
     }

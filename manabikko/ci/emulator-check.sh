@@ -7,8 +7,11 @@ PKG=com.toyontaker.manabikko
 OUT=build/emulator-results
 mkdir -p "$OUT"
 
-# 1) 端末テスト(debug ビルド + androidTest)
+# 1) 端末テスト(debug ビルド + androidTest)。失敗しても モンキーテストは 続けて、最後に まとめて 判定する
+set +e
 ./gradlew --no-daemon connectedDebugAndroidTest
+DEVICE_TESTS=$?
+set -e
 
 # 2) リリースAPKを 入れなおして、ランダム操作を 5000回
 adb uninstall "$PKG" || true
@@ -35,3 +38,6 @@ if grep -E "FATAL EXCEPTION|ANR in $PKG" -A 20 "$OUT/logcat.txt" | grep -q "$PKG
   echo "::error::crash or ANR in release build"; exit 1
 fi
 echo "release build survived 5000 random events"
+if [ $DEVICE_TESTS -ne 0 ]; then
+  echo "::error::device tests failed"; exit 1
+fi
