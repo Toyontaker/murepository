@@ -87,7 +87,7 @@ fun TopBar(title: String, color: Color, onHome: () -> Unit, trailing: @Composabl
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         BouncyBox(color = Color.White, onClick = onHome, modifier = Modifier.size(64.dp), corner = 32.dp) {
             Text("🏠", fontSize = 32.sp)

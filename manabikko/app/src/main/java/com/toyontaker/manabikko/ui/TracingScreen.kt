@@ -5,6 +5,12 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,7 +55,11 @@ import com.toyontaker.manabikko.LocalSpeaker
 import com.toyontaker.manabikko.LocalSfx
 import com.toyontaker.manabikko.Sfx
 import com.toyontaker.manabikko.data.Hiragana
+import com.toyontaker.manabikko.data.KanaSet
 import com.toyontaker.manabikko.data.Katakana
+import com.toyontaker.manabikko.data.LetterDeck
+import com.toyontaker.manabikko.data.LetterOrder
+import com.toyontaker.manabikko.rememberPref
 import com.toyontaker.manabikko.trace.Glyph
 import com.toyontaker.manabikko.trace.Grade
 import com.toyontaker.manabikko.trace.Strokes
@@ -68,10 +78,30 @@ fun TracingScreen(onHome: () -> Unit, autoDemo: Boolean = true) {
     val sfx = LocalSfx.current
     val context = LocalContext.current
     val density = LocalDensity.current.density
-    var useKatakana by rememberSaveable { mutableStateOf(false) }
-    val letters = if (useKatakana) Katakana.all else Hiragana.all
-    var index by rememberSaveable { mutableIntStateOf(0) }
-    val kana = letters[index.coerceIn(0, letters.lastIndex)]
+    // おとなが えらぶ 設定(アプリを とじても おぼえておく)
+    var script by rememberPref("trace_script", "hira")
+    var orderPref by rememberPref("trace_order", LetterOrder.Sequential.encode())
+    val kanaSet: KanaSet = if (script == "kata") Katakana else Hiragana
+    val order = LetterOrder.decode(orderPref)
+    val deck = remember(kanaSet, order) { LetterDeck(kanaSet, order) }
+    var currentChar by rememberSaveable(kanaSet, order) { mutableStateOf(deck.next(null).char) }
+    val kana = kanaSet.all.firstOrNull { it.char == currentChar } ?: kanaSet.all.first()
+    // ランダムの ときに ◀ で もどれるように、出した 文字を おぼえておく
+    val history = remember(deck) { mutableStateListOf<String>() }
+    var showSettings by remember { mutableStateOf(false) }
+
+    fun goNext() {
+        history += kana.char
+        currentChar = deck.next(kana).char
+    }
+
+    fun goPrevious() {
+        if (order == LetterOrder.Sequential) {
+            currentChar = deck.previous(kana).char
+        } else {
+            history.removeLastOrNull()?.let { currentChar = it }
+        }
+    }
     val lines = remember(kana) { mutableStateListOf<Line>() }
     // さいてんの けっか(null のときは まだ)
     var grade by remember(kana) { mutableStateOf<Grade?>(null) }
@@ -108,9 +138,14 @@ fun TracingScreen(onHome: () -> Unit, autoDemo: Boolean = true) {
     LaunchedEffect(grade) {
         val g = grade ?: return@LaunchedEffect
         delay(2500)
-        // はずれた ときは けして もういちど
-        if (g == Grade.Miss) lines.clear()
         grade = null
+        if (g == Grade.Great) {
+            // はなまる なら つぎの 文字へ
+            goNext()
+        } else {
+            // それ以外は けして もういちど(はなまるを めざす)
+            lines.clear()
+        }
     }
 
     fun check() {
@@ -125,11 +160,11 @@ fun TracingScreen(onHome: () -> Unit, autoDemo: Boolean = true) {
         when (result.grade) {
             Grade.Great -> {
                 sfx.play(Sfx.Sound.Fanfare)
-                speaker.speak("はなまる!とっても上手!")
+                speaker.speak("はなまる!とっても上手!", "次の字に行くよ")
             }
             Grade.Good -> {
                 sfx.play(Sfx.Sound.Correct)
-                speaker.speak("上手に書けたね!")
+                speaker.speak("上手!", "もう一回書いて、花丸をもらおう")
             }
             Grade.Miss -> {
                 sfx.play(Sfx.Sound.Wrong)
@@ -138,24 +173,17 @@ fun TracingScreen(onHome: () -> Unit, autoDemo: Boolean = true) {
         }
     }
 
-    fun move(step: Int) {
-        index = (index + step + letters.size) % letters.size
-    }
-
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             TopBar("なぞりがき", Palette.Blue, onHome) {
-                // ひらがな ⇔ カタカナ きりかえ
+                // 文字の しゅるい と じゅんばん を えらぶ(おとな向け)
                 BouncyBox(
-                    color = if (useKatakana) Palette.Orange else Palette.Red,
-                    onClick = {
-                        useKatakana = !useKatakana
-                        index = 0
-                    },
-                    modifier = Modifier.size(132.dp, 64.dp),
+                    color = if (script == "kata") Palette.Orange else Palette.Red,
+                    onClick = { showSettings = true },
+                    modifier = Modifier.size(100.dp, 64.dp),
                     corner = 32.dp,
                 ) {
-                    Text(if (useKatakana) "ア→あ" else "あ→ア", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
+                    Text(orderLabel(kanaSet, order), fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, maxLines = 1)
                 }
             }
 
@@ -247,22 +275,116 @@ fun TracingScreen(onHome: () -> Unit, autoDemo: Boolean = true) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                ToolButton("◀", Palette.Yellow) { move(-1) }
+                ToolButton("◀", Palette.Yellow) { goPrevious() }
                 ToolButton("🧽", Palette.Pink, Modifier.weight(1f), label = "けす", sound = false) {
                     sfx.play(Sfx.Sound.Swish)
                     lines.clear()
                 }
                 ToolButton("💮", Palette.Green, Modifier.weight(1f), label = "できた", sound = false) { check() }
-                ToolButton("▶", Palette.Yellow) { move(1) }
+                ToolButton("▶", Palette.Yellow) { goNext() }
             }
         }
         // けっかを ひょうじ(きえていく あいだも 前の けっかを だす)
         val (emoji, message) = when (lastGrade) {
-            Grade.Great -> "💮" to "はなまる!"
-            Grade.Good -> "⭕" to "じょうず!"
+            Grade.Great -> "💮" to "はなまる!\nつぎの もじへ"
+            Grade.Good -> "⭕" to "じょうず!\nはなまるまで あと すこし"
             Grade.Miss -> "🙂" to "おしい!\nもういっかい"
         }
         Celebration(visible = grade != null, emoji = emoji, message = message)
+
+        if (showSettings) {
+            TraceSettings(
+                script = script,
+                order = order,
+                onScript = { script = it },
+                onOrder = { orderPref = it.encode() },
+                onClose = { showSettings = false },
+            )
+        }
+    }
+}
+
+/** 設定ボタンの 表示(じゅんばん「あ→」、ぜんぶランダム「あ🎲」、か行ランダム「か🎲」)。 */
+internal fun orderLabel(set: KanaSet, order: LetterOrder): String = when (order) {
+    LetterOrder.Sequential -> "${set.all.first().char}→"
+    LetterOrder.AllRandom -> "${set.all.first().char}🎲"
+    is LetterOrder.RowRandom -> "${rowHead(set, order.row)}🎲"
+}
+
+private fun rowHead(set: KanaSet, row: Int) = set.table[row].firstOrNull { it != null }?.char ?: ""
+
+/** なぞりがきの 設定パネル:ひらがな/カタカナ、じゅんばん/ぜんぶランダム/行ごとランダム。 */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TraceSettings(
+    script: String,
+    order: LetterOrder,
+    onScript: (String) -> Unit,
+    onOrder: (LetterOrder) -> Unit,
+    onClose: () -> Unit,
+) {
+    val set: KanaSet = if (script == "kata") Katakana else Hiragana
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Palette.Ink.copy(alpha = 0.4f))
+            .clickable(remember { MutableInteractionSource() }, indication = null, onClick = onClose),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            Modifier
+                .padding(16.dp)
+                .clip(RoundedCornerShape(32.dp))
+                .background(Palette.Background)
+                // パネルの なかを おしても とじない
+                .clickable(remember { MutableInteractionSource() }, indication = null) {}
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            SettingsLabel("もじ")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Chip("ひらがな", script != "kata", Modifier.weight(1f)) { onScript("hira") }
+                Chip("カタカナ", script == "kata", Modifier.weight(1f)) { onScript("kata") }
+            }
+            SettingsLabel("じゅんばん")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Chip("じゅんばん", order == LetterOrder.Sequential, Modifier.weight(1f)) { onOrder(LetterOrder.Sequential) }
+                Chip("ぜんぶ 🎲", order == LetterOrder.AllRandom, Modifier.weight(1f)) { onOrder(LetterOrder.AllRandom) }
+            }
+            SettingsLabel("ぎょうの なかで 🎲")
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                maxItemsInEachRow = 5,
+            ) {
+                set.table.indices.forEach { row ->
+                    Chip(rowHead(set, row), order == LetterOrder.RowRandom(row), Modifier.weight(1f)) {
+                        onOrder(LetterOrder.RowRandom(row))
+                    }
+                }
+            }
+            BouncyBox(color = Palette.Green, onClick = onClose, modifier = Modifier.fillMaxWidth().height(64.dp), corner = 32.dp) {
+                Text("OK", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsLabel(text: String) {
+    Text(text, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Palette.Ink)
+}
+
+@Composable
+private fun Chip(text: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    BouncyBox(
+        color = if (selected) Palette.Orange else Color.White,
+        onClick = onClick,
+        modifier = modifier.height(56.dp),
+        corner = 28.dp,
+    ) {
+        Text(text, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, maxLines = 1)
     }
 }
 

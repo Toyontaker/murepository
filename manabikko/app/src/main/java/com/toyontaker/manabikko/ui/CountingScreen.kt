@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.toyontaker.manabikko.LocalSfx
 import com.toyontaker.manabikko.LocalSpeaker
 import com.toyontaker.manabikko.Sfx
+import com.toyontaker.manabikko.rememberPref
 import com.toyontaker.manabikko.data.Numbers
 import kotlinx.coroutines.delay
 
@@ -52,11 +53,16 @@ private val MAX_ITEM = 140.dp
  * かずあそび:えらんだ数だけ ものが でてくるので、ひとつずつ タップして かぞえる。
  */
 @Composable
-fun CountingScreen(onHome: () -> Unit, initialTarget: Int = 1, initialThing: Int = 0) {
+fun CountingScreen(onHome: () -> Unit, initialTarget: Int? = null, initialThing: Int? = null) {
     val speaker = LocalSpeaker.current
     val sfx = LocalSfx.current
-    var target by rememberSaveable { mutableIntStateOf(initialTarget) }
-    var thingIndex by rememberSaveable { mutableIntStateOf(initialThing) }
+    // じゅんばん(1,2,3…)か ランダムか。おとなが えらんで、アプリを とじても おぼえておく
+    var orderPref by rememberPref("count_order", "random")
+    val random = orderPref == "random"
+    var target by rememberSaveable { mutableIntStateOf(initialTarget ?: if (random) (1..10).random() else 1) }
+    var thingIndex by rememberSaveable {
+        mutableIntStateOf(initialThing ?: if (random) Numbers.things.indices.random() else 0)
+    }
     // タップした じゅんばん(どのアイテムが なんばんめ か)
     val order = remember(target, thingIndex) { mutableStateListOf<Int>() }
     var done by remember(target, thingIndex) { mutableStateOf(false) }
@@ -68,8 +74,16 @@ fun CountingScreen(onHome: () -> Unit, initialTarget: Int = 1, initialThing: Int
 
     fun choose(n: Int) {
         target = n
-        thingIndex = (thingIndex + 1) % Numbers.things.size
+        thingIndex = if (random) {
+            // ちがう ものを ランダムに
+            Numbers.things.indices.filter { it != thingIndex }.random()
+        } else {
+            (thingIndex + 1) % Numbers.things.size
+        }
     }
+
+    /** できたら つぎの かず:じゅんばん なら +1、ランダム なら いまと ちがう 数。 */
+    fun nextTarget() = if (random) (1..10).filter { it != target }.random() else if (target >= 10) 1 else target + 1
 
     fun tap(i: Int) {
         if (i in order || done) return
@@ -91,13 +105,26 @@ fun CountingScreen(onHome: () -> Unit, initialTarget: Int = 1, initialThing: Int
             delay(400)
             sfx.play(Sfx.Sound.Fanfare)
             delay(3100)
-            choose(if (target >= 10) 1 else target + 1)
+            choose(nextTarget())
         }
     }
 
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
-            TopBar("かず", Palette.Green, onHome)
+            TopBar("かず", Palette.Green, onHome) {
+                // じゅんばん ⇔ ランダム きりかえ
+                BouncyBox(
+                    color = if (random) Palette.Purple else Palette.Yellow,
+                    onClick = {
+                        orderPref = if (random) "seq" else "random"
+                        speaker.speak(if (random) "順番" else "ランダム")
+                    },
+                    modifier = Modifier.size(150.dp, 64.dp),
+                    corner = 32.dp,
+                ) {
+                    Text(if (random) "🎲 ランダム" else "1→2→3", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Palette.Ink, maxLines = 1)
+                }
+            }
 
             // いま いくつ かぞえたか(「3ぼん さんぼん」)
             Row(
