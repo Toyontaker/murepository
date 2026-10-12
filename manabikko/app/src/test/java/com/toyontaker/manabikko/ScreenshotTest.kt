@@ -13,6 +13,7 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import com.github.takahirom.roborazzi.captureRoboImage
+import com.toyontaker.manabikko.ui.Celebration
 import com.toyontaker.manabikko.ui.CountingScreen
 import com.toyontaker.manabikko.ui.KanaScreen
 import com.toyontaker.manabikko.data.Hiragana
@@ -62,6 +63,14 @@ class ScreenshotTest {
         listOf(0, 3, 6, 9).forEach { rule.onNodeWithTag("item_$it").performClick() }
         rule.mainClock.advanceTimeBy(1000)
     }) { CountingScreen(onHome = {}, initialTarget = 10, initialThing = Numbers.things.indexOfFirst { it.counter == Counter.Satsu }) }
+    @Test fun countingDone() = shot("counting_done", before = {
+        // 3こ ぜんぶ かぞえて おいわいが でている ところ
+        listOf(0, 1, 2).forEach { rule.onNodeWithTag("item_$it").performClick() }
+        rule.mainClock.advanceTimeBy(1500)
+    }) { CountingScreen(onHome = {}, initialTarget = 3, initialThing = Numbers.things.indexOfFirst { it.counter == Counter.Satsu }) }
+    @Test fun celebrationMiss() = shot("celebration_miss") {
+        Celebration(visible = true, emoji = "🙂", message = "おしい!\nもういっかい")
+    }
     @Test fun tracingDemo() = shot("tracing_demo", before = {
         // かきじゅん アニメーションの とちゅう(2画目を かいている ところ)
         rule.mainClock.autoAdvance = false

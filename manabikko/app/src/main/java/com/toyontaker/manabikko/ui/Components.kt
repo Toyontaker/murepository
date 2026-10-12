@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.toyontaker.manabikko.LocalSfx
 import com.toyontaker.manabikko.Sfx
@@ -115,14 +116,24 @@ fun Celebration(visible: Boolean, emoji: String, message: String) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White.copy(alpha = 0.6f)),
+                .background(Palette.Background.copy(alpha = 0.75f)),
             contentAlignment = Alignment.Center,
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(emoji, fontSize = 140.sp)
+            // うしろの 絵と かさならないよう、白い カードに のせる
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .shadow(8.dp, RoundedCornerShape(40.dp))
+                    .clip(RoundedCornerShape(40.dp))
+                    .background(Color.White)
+                    .padding(horizontal = 32.dp, vertical = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(emoji, fontSize = 120.sp, lineHeight = 1.2.em)
                 Text(
                     message,
-                    fontSize = 44.sp,
+                    fontSize = 40.sp,
+                    lineHeight = 1.3.em,
                     fontWeight = FontWeight.Bold,
                     color = Palette.Ink,
                     textAlign = TextAlign.Center,

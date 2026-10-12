@@ -1,9 +1,11 @@
 package com.toyontaker.manabikko.ui
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.em
 
 object Palette {
     val Background = Color(0xFFFFF8E7)
@@ -29,7 +31,15 @@ object Palette {
 
 @Composable
 fun ManabikkoTheme(content: @Composable () -> Unit) {
+    // 標準の 行の高さは 固定(24sp など)で、大きな文字を 2行に すると 重なるので、文字の大きさに 合わせる
+    val base = Typography()
+    val lineHeight = 1.3.em
     MaterialTheme(
+        typography = base.copy(
+            bodyLarge = base.bodyLarge.copy(lineHeight = lineHeight),
+            bodyMedium = base.bodyMedium.copy(lineHeight = lineHeight),
+            bodySmall = base.bodySmall.copy(lineHeight = lineHeight),
+        ),
         colorScheme = lightColorScheme(
             primary = Palette.Orange,
             background = Palette.Background,
