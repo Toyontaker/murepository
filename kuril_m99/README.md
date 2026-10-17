@@ -1,10 +1,12 @@
 # 千島列島 M9.9 仮想シナリオ動画
 
-2026年10月16日の緊急地震速報（千島列島 M9.9、のちに取消）が、もし実際に起きていたらどうなるかをまとめた解説動画（約5分20秒、日本語ナレーション・字幕付き）。
+2026年10月16日の緊急地震速報（千島列島 M9.9、のちに取消）が、もし実際に起きていたらどうなるかをまとめた解説動画（約5分55秒、日本語ナレーション・字幕付き）。
 
 - 動画: `kuril_m99_scenario.mp4`（1280×720）
-- 作り直し: `pip install matplotlib numpy pillow cartopy gTTS` のあと
-  `python3 scripts/tts.py && python3 scripts/render.py`
+- ナレーション: Gemini TTS（gemini-3.8-flash-tts、声 Kore）。読み上げごとに Gemini で文字起こしして台本と照合し、ずれていれば作り直す。
+- 作り直し: `pip install matplotlib numpy pillow cartopy` のあと
+  `GEMINI_API_KEY=... python3 scripts/tts_gemini.py && TTS_DIR=cache/tts_gemini python3 scripts/render.py`
+  （APIキーなしなら `pip install gTTS && python3 scripts/tts.py && python3 scripts/render.py` で簡易音声版）
 
 ## 前提と計算方法
 - 深さ140〜160kmで M9.9 は現実的でないため、千島海溝のプレート境界（カムチャツカ〜十勝沖、長さ1,500km以上）がずれる海溝型地震を想定。
