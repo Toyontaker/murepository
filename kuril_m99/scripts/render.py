@@ -13,7 +13,7 @@ from narration import SCENES
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..")
-TTS = os.path.join(ROOT, "cache", "tts")
+TTS = os.path.join(ROOT, os.environ.get("TTS_DIR", "cache/tts"))
 OUT = os.path.join(ROOT, "kuril_m99_scenario.mp4")
 W, H, FPS = 1280, 720, 24
 FONT = "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf"
