@@ -72,12 +72,18 @@ for sid, sents in SCENES:
                 if good:
                     open(ok_flag, "w").write(heard); break
                 print(f"mismatch {tag} ({r:.2f}): {heard.strip()[:80]}", flush=True); os.remove(wav)
-            pcm = f"{OUT}/{tag}.pcm"
-            open(pcm, "wb").write(synth(s))
-            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "s16le", "-ar", "24000", "-ac", "1", "-i", pcm,
-                "-af", "silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse",
+            audio = synth(s)
+            # The API returns a full WAV (header + trailing metadata chunk); let ffmpeg parse it.
+            # Fall back to raw 24 kHz PCM if it ever sends headerless data.
+            is_wav = audio[:4] == b"RIFF"
+            src = f"{OUT}/{tag}.src" + (".wav" if is_wav else ".pcm")
+            open(src, "wb").write(audio)
+            fmt = [] if is_wav else ["-f", "s16le", "-ar", "24000", "-ac", "1"]
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *fmt, "-i", src, "-af",
+                "silenceremove=start_periods=1:start_threshold=-50dB,areverse,silenceremove=start_periods=1:start_threshold=-50dB,areverse,"
+                "afade=t=in:d=0.02,areverse,afade=t=in:d=0.06,areverse",
                 "-ar", "44100", "-ac", "1", wav], check=True)
-            os.remove(pcm); print("generated", tag, flush=True)
+            os.remove(src); print("generated", tag, flush=True)
         else:
             sys.exit(f"could not get a matching clip for {tag}")
         meta[sid].append(float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", wav])))
