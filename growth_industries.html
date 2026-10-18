@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>成長産業ウォッチリスト</title>
+<style>
+:root{
+  --bg:#f7f7f5;--surface:#ffffff;--text:#1d1d1f;--muted:#5f6368;--line:#e3e3e0;
+  --accent:#2f5bd3;--chip:#eef1f8;--warn-bg:#fff6e5;--warn-line:#f0c36d;
+  --jp:#c0392b;--us:#2f5bd3;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141416;--surface:#1e1f22;--text:#ececec;--muted:#a0a4ab;--line:#2f3136;
+    --accent:#7c9cff;--chip:#262a35;--warn-bg:#2c2516;--warn-line:#8a6d2b;
+    --jp:#ff7a6b;--us:#7c9cff;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141416;--surface:#1e1f22;--text:#ececec;--muted:#a0a4ab;--line:#2f3136;
+  --accent:#7c9cff;--chip:#262a35;--warn-bg:#2c2516;--warn-line:#8a6d2b;
+  --jp:#ff7a6b;--us:#7c9cff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
+  line-height:1.65;font-size:15px}
+.wrap{max-width:960px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:1.6rem;margin:0 0 4px}
+h2{font-size:1.2rem;margin:40px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.sub{color:var(--muted);margin:0 0 16px}
+.warn{background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:10px;padding:12px 14px;font-size:.9rem}
+table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:10px;overflow:hidden;font-size:.9rem}
+th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--chip);font-weight:600;white-space:nowrap}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 16px}
+.filters button{border:1px solid var(--line);background:var(--surface);color:var(--text);
+  padding:6px 12px;border-radius:999px;font-size:.85rem;cursor:pointer}
+.filters button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.card h3{margin:0;font-size:1.02rem}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;font-size:.75rem}
+.tag{background:var(--chip);padding:2px 8px;border-radius:6px;color:var(--muted)}
+.mkt{font-weight:700;padding:2px 8px;border-radius:6px;border:1px solid currentColor}
+.mkt.jp{color:var(--jp)} .mkt.us{color:var(--us)}
+.card p{margin:4px 0;font-size:.88rem}
+.card b{font-weight:600}
+.risk{color:var(--muted)}
+.stars{color:var(--accent);letter-spacing:1px}
+footer{margin-top:40px;color:var(--muted);font-size:.8rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>成長産業ウォッチリスト</h1>
+<p class="sub">伸びそうな産業10分野と、「技術力のわりに市場の評価がまだ追いついていない」と考えられる企業候補</p>
+
+<div class="warn">
+<b>ご注意：</b>投資助言ではなく、銘柄調査の出発点としての整理です。株価・時価総額・業績は2026年半ばまでの公開情報にもとづく定性的な見方で、最新の数値は反映していません。購入前には決算資料・PER/PSR・需給を必ずご自身で確認してください。小型株や赤字の先端企業は値動きが非常に大きい点にもご注意ください。
+</div>
+
+<h2>1. これから伸びそうな産業</h2>
+<div class="tbl">
+<table>
+<thead><tr><th>産業</th><th>成長のけん引役</th><th>期待度</th><th>主なリスク</th></tr></thead>
+<tbody>
+<tr><td>AI半導体・データセンター</td><td>生成AIの推論需要、カスタムチップ（ASIC）化</td><td class="stars">★★★★★</td><td>設備投資サイクルの減速、過熱</td></tr>
+<tr><td>光通信・光電融合</td><td>データセンター内の高速化・省電力化（800G→1.6T、CPO）</td><td class="stars">★★★★★</td><td>技術方式の入れ替わり</td></tr>
+<tr><td>電力インフラ</td><td>AI向け電力需要、送配電網・変圧器不足</td><td class="stars">★★★★☆</td><td>公共投資・規制に左右される</td></tr>
+<tr><td>次世代原子力・核融合</td><td>SMR、燃料（HALEU）、核融合の実証炉計画</td><td class="stars">★★★★☆</td><td>実用化まで長期、政策変更</td></tr>
+<tr><td>宇宙</td><td>衛星コンステレーション、地球観測データ、防衛需要</td><td class="stars">★★★★☆</td><td>打ち上げ失敗、資金繰り</td></tr>
+<tr><td>ロボティクス・フィジカルAI</td><td>人型ロボット、工場自動化、人手不足</td><td class="stars">★★★★☆</td><td>量産時期の後ずれ</td></tr>
+<tr><td>半導体材料・製造装置</td><td>2nm以降の微細化、先端パッケージ</td><td class="stars">★★★★☆</td><td>半導体市況の波</td></tr>
+<tr><td>サイバーセキュリティ</td><td>AIによる攻撃の高度化、経済安全保障</td><td class="stars">★★★☆☆</td><td>競争激化・価格競争</td></tr>
+<tr><td>AI創薬・バイオ</td><td>AIでの候補分子探索、ペプチド・新モダリティ</td><td class="stars">★★★☆☆</td><td>臨床試験の失敗</td></tr>
+<tr><td>次世代電池・素材</td><td>全固体電池、蓄電システム</td><td class="stars">★★★☆☆</td><td>EV需要の鈍化、量産化の壁</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>2. 技術力のわりに評価が控えめな企業候補</h2>
+<p class="sub">「評価が十分でない」の理由：知名度が低い、業績が端境期、テーマ株として注目される前、など。</p>
+<div class="filters" id="filters"></div>
+<div class="grid" id="grid"></div>
+
+<h2>3. 選ぶときのチェックポイント</h2>
+<ul>
+<li><b>技術の裏づけ：</b>特許、世界シェア、大手顧客への採用実績があるか</li>
+<li><b>評価の余地：</b>同業他社と比べてPER・PSRが低いか、アナリストのカバーが少ないか</li>
+<li><b>きっかけ：</b>量産開始、大型受注、黒字化など、評価が変わるイベントが近いか</li>
+<li><b>財務：</b>赤字企業は手元資金が何年もつか（増資による株の希薄化リスク）</li>
+<li><b>分散：</b>1テーマ・1銘柄に集中せず、数分野に分けて少額から</li>
+</ul>
+
+<footer>作成日：2026年10月18日｜情報は定性的な整理であり、正確性・将来の成果を保証するものではありません。</footer>
+</div>
+
+<script>
+const D=[
+ ["AI半導体","ソシオネクスト","6526","jp","カスタムSoC（ASIC）の設計受託で国内トップ級。先端プロセスでの設計実績が豊富。","AI向けカスタムチップ需要の追い風に対し、足元業績の谷で株価は伸び悩み。","大口顧客への依存、案件の端境期"],
+ ["AI半導体","Ambarella","AMBA","us","省電力のエッジAI向け画像処理チップ。車載・監視カメラに強い。","クラウドAIの陰に隠れがちで、エッジAI本格化前の段階。","車載市場の回復ペース、競合（大手SoC）"],
+ ["AI半導体","Lattice Semiconductor","LSCC","us","小型・低消費電力FPGAで高シェア。AIサーバーの制御用途にも採用。","在庫調整で業績が落ち込み、評価が一服。","産業機器市況、在庫サイクル"],
+ ["光通信","santec","6777","jp","光部品・光測定器の老舗。光電融合（CPO）の検査需要に関わる。","小型で機関投資家のカバーが少ない。","受注の振れ、規模の小ささ"],
+ ["光通信","精工技研","6834","jp","光コネクタ研磨・光部品の精密加工技術。データセンター向け需要。","時価総額が小さく知名度が低い。","特定顧客・特定製品への依存"],
+ ["電力インフラ","東光高岳","6617","jp","変圧器・スマートメーター・EV急速充電器。電力網投資の直接の受益者。","電力株の陰で注目度が低め。","電力会社の投資計画次第"],
+ ["次世代原子力","助川電気工業","7711","jp","核融合・原子力向けのヒーターや計測機器。核融合実験炉に関わる技術。","超小型株で、テーマ相場以外では注目されにくい。","値動きが極端、業績規模が小さい"],
+ ["次世代原子力","木村化工機","6378","jp","原子力燃料の再処理・関連装置の技術。化学プラント装置も。","原子力再評価の中でも周辺企業として見落とされがち。","政策依存、受注の波"],
+ ["次世代原子力","Centrus Energy","LEU","us","米国で数少ないHALEU（次世代炉燃料）の製造能力を持つ。","次世代炉の普及前で、収益化の時期が読みにくい。","政府契約依存、株価の変動大"],
+ ["宇宙","アストロスケール","186A","jp","宇宙ごみ除去・衛星の寿命延長サービスで世界の先行企業。","赤字で上場後の株価は低迷、評価が定まっていない。","赤字継続、ミッション失敗"],
+ ["宇宙","QPS研究所","5595","jp","小型SAR衛星（夜間・悪天候でも撮影）の高精細技術。","防衛・政府需要が伸びる中、事業規模はまだ小さい。","打ち上げ遅延、政府依存"],
+ ["宇宙","Synspective","290A","jp","小型SAR衛星とデータ解析サービス。","上場から日が浅く、実績の評価はこれから。","衛星数の積み上げペース、資金調達"],
+ ["宇宙","Redwire","RDW","us","宇宙用構造物・太陽電池パネル・宇宙での製造技術。","同業のRocket Labほど注目されていない。","財務の重さ、統合リスク"],
+ ["ロボティクス","ハーモニック・ドライブ・システムズ","6324","jp","ロボット関節用の精密減速機で世界トップシェア。人型ロボットの重要部品。","産業用ロボット不況で業績・株価が下がった状態。","人型ロボット量産の遅れ、中国勢の追い上げ"],
+ ["ロボティクス","ナブテスコ","6268","jp","産業用ロボット向け精密減速機の大手。","成熟企業と見られ、ロボット成長株としての評価は限定的。","設備投資の循環、中国市場"],
+ ["半導体材料","トリケミカル研究所","4369","jp","先端半導体の成膜材料（high-k材料など）に強い高純度化学品メーカー。","業績の伸びが一服し、株価は高値から調整。","特定顧客への依存、市況"],
+ ["半導体材料","フィックスターズ","3687","jp","AI・量子計算向けのソフトウェア高速化技術。量子アニーリング活用も。","「ソフト受託」と見られがちで技術力ほど評価されていない。","人材確保、案件ベースの収益"],
+ ["セキュリティ","FFRIセキュリティ","3692","jp","国産のサイバーセキュリティ製品と脅威研究。官公庁・防衛向け。","経済安全保障の追い風の割に小型で注目度が低い。","規模の小ささ、海外大手との競争"],
+ ["セキュリティ","SentinelOne","S","us","AIを使ったエンドポイント防御で技術評価が高い。","CrowdStrikeなど大手に比べPSRが低く、黒字化の途上。","競争激化、成長率の鈍化"],
+ ["AI創薬","ペプチドリーム","4587","jp","独自のペプチド探索技術。大手製薬との提携が多い。","株価は高値から大きく下がり、提携の価値が十分に反映されていない可能性。","臨床の成否、提携収入の変動"],
+ ["AI創薬","Schrödinger","SDGR","us","物理シミュレーション＋AIの分子設計ソフトで業界標準級。","自社創薬の赤字で評価が抑えられている。","臨床失敗、ソフト売上の伸び悩み"],
+ ["次世代電池","オハラ","5218","jp","光学ガラスと、全固体電池向けのガラスセラミックス電解質技術。","本業の光学ガラスの会社と見られ、電池材料の価値が見えにくい。","全固体電池の量産時期"]
+];
+const cats=["すべて",...new Set(D.map(d=>d[0]))];
+let cur="すべて";
+const f=document.getElementById("filters"),g=document.getElementById("grid");
+function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+function render(){
+  f.innerHTML=cats.map(c=>`<button class="${c===cur?"on":""}" data-c="${c}">${c}</button>`).join("");
+  g.innerHTML=D.filter(d=>cur==="すべて"||d[0]===cur).map(d=>`
+   <div class="card">
+    <h3>${esc(d[1])}</h3>
+    <div class="meta"><span class="mkt ${d[3]}">${d[3]==="jp"?"東証":"米国"} ${d[2]}</span><span class="tag">${d[0]}</span></div>
+    <p><b>技術力：</b>${esc(d[4])}</p>
+    <p><b>過小評価の理由：</b>${esc(d[5])}</p>
+    <p class="risk"><b>リスク：</b>${esc(d[6])}</p>
+   </div>`).join("");
+}
+f.addEventListener("click",e=>{const b=e.target.closest("button");if(b){cur=b.dataset.c;render();}});
+render();
+</script>
+</body>
+</html>
