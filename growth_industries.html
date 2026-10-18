@@ -8,58 +8,77 @@
 :root{
   --bg:#f7f7f5;--surface:#ffffff;--text:#1d1d1f;--muted:#5f6368;--line:#e3e3e0;
   --accent:#2f5bd3;--chip:#eef1f8;--warn-bg:#fff6e5;--warn-line:#f0c36d;
-  --jp:#c0392b;--us:#2f5bd3;
+  --jp:#c0392b;--us:#2f5bd3;--good:#1e8e5a;--bad:#c0392b;--dot:#d5d8de;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#141416;--surface:#1e1f22;--text:#ececec;--muted:#a0a4ab;--line:#2f3136;
     --accent:#7c9cff;--chip:#262a35;--warn-bg:#2c2516;--warn-line:#8a6d2b;
-    --jp:#ff7a6b;--us:#7c9cff;
+    --jp:#ff7a6b;--us:#7c9cff;--good:#4cc38a;--bad:#ff7a6b;--dot:#3a3d44;
   }
 }
 :root[data-theme="dark"]{
   --bg:#141416;--surface:#1e1f22;--text:#ececec;--muted:#a0a4ab;--line:#2f3136;
   --accent:#7c9cff;--chip:#262a35;--warn-bg:#2c2516;--warn-line:#8a6d2b;
-  --jp:#ff7a6b;--us:#7c9cff;
+  --jp:#ff7a6b;--us:#7c9cff;--good:#4cc38a;--bad:#ff7a6b;--dot:#3a3d44;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
   line-height:1.65;font-size:15px}
-.wrap{max-width:960px;margin:0 auto;padding:24px 16px 64px}
+.wrap{max-width:980px;margin:0 auto;padding:24px 16px 64px}
 h1{font-size:1.6rem;margin:0 0 4px}
 h2{font-size:1.2rem;margin:40px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{margin:0}
 .sub{color:var(--muted);margin:0 0 16px}
-.warn{background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:10px;padding:12px 14px;font-size:.9rem}
-table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:10px;overflow:hidden;font-size:.9rem}
-th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.warn{background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:10px;padding:12px 14px;font-size:.88rem}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 th{background:var(--chip);font-weight:600;white-space:nowrap}
-.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
-.filters{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 16px}
-.filters button{border:1px solid var(--line);background:var(--surface);color:var(--text);
-  padding:6px 12px;border-radius:999px;font-size:.85rem;cursor:pointer}
-.filters button.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.stars{color:var(--accent);letter-spacing:1px;white-space:nowrap}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.controls button{border:1px solid var(--line);background:var(--surface);color:var(--text);
+  padding:6px 12px;border-radius:999px;font-size:.82rem;cursor:pointer}
+.controls button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.lbl{font-size:.8rem;color:var(--muted);align-self:center;margin-right:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.card h3{margin:0;font-size:1.02rem}
-.meta{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;font-size:.75rem}
+.head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.total{font-size:1.4rem;font-weight:700;color:var(--accent);line-height:1;white-space:nowrap}
+.total small{font-size:.7rem;color:var(--muted);font-weight:400}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px;font-size:.74rem}
 .tag{background:var(--chip);padding:2px 8px;border-radius:6px;color:var(--muted)}
-.mkt{font-weight:700;padding:2px 8px;border-radius:6px;border:1px solid currentColor}
+.mkt{font-weight:700;padding:1px 7px;border-radius:6px;border:1px solid currentColor}
 .mkt.jp{color:var(--jp)} .mkt.us{color:var(--us)}
-.card p{margin:4px 0;font-size:.88rem}
-.card b{font-weight:600}
-.risk{color:var(--muted)}
-.stars{color:var(--accent);letter-spacing:1px}
-footer{margin-top:40px;color:var(--muted);font-size:.8rem}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0;font-size:.78rem}
+.kpi{background:var(--chip);border-radius:8px;padding:6px 8px}
+.kpi span{display:block;color:var(--muted);font-size:.7rem}
+.kpi b{font-variant-numeric:tabular-nums}
+.sec{border-top:1px solid var(--line);padding-top:8px;margin-top:8px;font-size:.84rem}
+.sec .t{display:flex;justify-content:space-between;font-weight:600;font-size:.82rem}
+.sec p{margin:2px 0}
+.dots{letter-spacing:2px;font-size:.8rem}
+.dots i{font-style:normal;color:var(--accent)} .dots u{text-decoration:none;color:var(--dot)}
+.muted{color:var(--muted)}
+.up{color:var(--good)} .down{color:var(--bad)}
+.rule{font-size:.85rem}
+.rule li{margin:4px 0}
+.bucket{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.bar{height:8px;border-radius:4px;background:var(--accent);margin:6px 0}
+footer{margin-top:40px;color:var(--muted);font-size:.78rem}
+footer a{color:var(--muted)}
 </style>
 </head>
 <body>
 <div class="wrap">
 <h1>成長産業ウォッチリスト</h1>
-<p class="sub">伸びそうな産業10分野と、「技術力のわりに市場の評価がまだ追いついていない」と考えられる企業候補</p>
+<p class="sub">伸びそうな10産業と、技術力のわりに評価が控えめな企業候補22社。株価・財務は<b>2026年10月16日終値</b>時点。</p>
 
 <div class="warn">
-<b>ご注意：</b>投資助言ではなく、銘柄調査の出発点としての整理です。株価・時価総額・業績は2026年半ばまでの公開情報にもとづく定性的な見方で、最新の数値は反映していません。購入前には決算資料・PER/PSR・需給を必ずご自身で確認してください。小型株や赤字の先端企業は値動きが非常に大きい点にもご注意ください。
+<b>ご注意：</b>投資助言ではありません。数値はYahoo Financeの自動取得値（直近12か月ベース）で、決算期のずれや集計方法の違いを含みます。スコアは下の機械的なルールで付けた目安です。購入前に決算短信などの一次資料で必ず確認してください。小型株・赤字企業は値動きが非常に大きくなります。
 </div>
 
 <h2>1. これから伸びそうな産業</h2>
@@ -73,73 +92,121 @@ footer{margin-top:40px;color:var(--muted);font-size:.8rem}
 <tr><td>次世代原子力・核融合</td><td>SMR、燃料（HALEU）、核融合の実証炉計画</td><td class="stars">★★★★☆</td><td>実用化まで長期、政策変更</td></tr>
 <tr><td>宇宙</td><td>衛星コンステレーション、地球観測データ、防衛需要</td><td class="stars">★★★★☆</td><td>打ち上げ失敗、資金繰り</td></tr>
 <tr><td>ロボティクス・フィジカルAI</td><td>人型ロボット、工場自動化、人手不足</td><td class="stars">★★★★☆</td><td>量産時期の後ずれ</td></tr>
-<tr><td>半導体材料・製造装置</td><td>2nm以降の微細化、先端パッケージ</td><td class="stars">★★★★☆</td><td>半導体市況の波</td></tr>
+<tr><td>半導体材料</td><td>2nm以降の微細化、先端パッケージ</td><td class="stars">★★★★☆</td><td>半導体市況の波</td></tr>
 <tr><td>サイバーセキュリティ</td><td>AIによる攻撃の高度化、経済安全保障</td><td class="stars">★★★☆☆</td><td>競争激化・価格競争</td></tr>
-<tr><td>AI創薬・バイオ</td><td>AIでの候補分子探索、ペプチド・新モダリティ</td><td class="stars">★★★☆☆</td><td>臨床試験の失敗</td></tr>
+<tr><td>AI創薬・バイオ</td><td>AIでの候補分子探索、ペプチド・放射性医薬品</td><td class="stars">★★★☆☆</td><td>臨床試験の失敗</td></tr>
 <tr><td>次世代電池・素材</td><td>全固体電池、蓄電システム</td><td class="stars">★★★☆☆</td><td>EV需要の鈍化、量産化の壁</td></tr>
 </tbody>
 </table>
 </div>
 
-<h2>2. 技術力のわりに評価が控えめな企業候補</h2>
-<p class="sub">「評価が十分でない」の理由：知名度が低い、業績が端境期、テーマ株として注目される前、など。</p>
-<div class="filters" id="filters"></div>
-<div class="grid" id="grid"></div>
-
-<h2>3. 選ぶときのチェックポイント</h2>
-<ul>
-<li><b>技術の裏づけ：</b>特許、世界シェア、大手顧客への採用実績があるか</li>
-<li><b>評価の余地：</b>同業他社と比べてPER・PSRが低いか、アナリストのカバーが少ないか</li>
-<li><b>きっかけ：</b>量産開始、大型受注、黒字化など、評価が変わるイベントが近いか</li>
-<li><b>財務：</b>赤字企業は手元資金が何年もつか（増資による株の希薄化リスク）</li>
-<li><b>分散：</b>1テーマ・1銘柄に集中せず、数分野に分けて少額から</li>
+<h2>2. スコアの付け方（各5点・合計20点）</h2>
+<ul class="rule">
+<li><b>技術の裏づけ</b>：特許・世界シェア・大手顧客への採用実績をもとに付けた点数（定性評価）。</li>
+<li><b>評価の余地</b>：1点から始めて加点。<br>
+ ・PSR（時価総額÷売上）が同業の中央値の0.5倍未満なら＋2、0.8倍未満なら＋1、1.5倍超なら−1<br>
+ ・予想PERが同業の中央値の0.7倍未満なら＋1、1.5倍超なら−1<br>
+ ・アナリストのカバーが3人以下なら＋1（注目度が低い）<br>
+ ・株価が52週高値から40%以上下落していれば＋1<br>
+ ・PBRが1倍未満なら＋1</li>
+<li><b>きっかけ</b>：量産開始・大型受注・黒字化など、評価が変わるイベントの近さと大きさ（定性評価）。</li>
+<li><b>財務</b>：黒字で営業キャッシュフローもプラスなら5点。黒字でも現金流出が大きい場合は4点。赤字の場合は手元資金が何年もつかで判定し、5年以上なら4点、3〜5年は3点、1.5〜3年は2点、1.5年未満は1点。</li>
+<li><b>分散</b>：個別のスコアではなく、5章のポートフォリオ例で示しています。</li>
 </ul>
 
-<footer>作成日：2026年10月18日｜情報は定性的な整理であり、正確性・将来の成果を保証するものではありません。</footer>
+<h2>3. 総合ランキング</h2>
+<div class="tbl"><table id="rank"></table></div>
+
+<h2>4. 企業別の詳細</h2>
+<div class="controls" id="themes"></div>
+<div class="controls" id="sorts"></div>
+<div class="grid" id="grid"></div>
+
+<h2>5. 分散：ポートフォリオの組み方の例</h2>
+<p class="sub">1テーマ・1銘柄に偏らないよう、性格の違う3つの枠に分けて少額から始める例です（比率は投資額全体に対する目安）。</p>
+<div class="bucket" id="buckets"></div>
+<ul class="rule">
+<li><b>1銘柄の上限は投資額の10%</b>、1テーマの上限は25%にする。</li>
+<li><b>「夢枠」（赤字・超小型株）は合計15%以内</b>にとどめる。ゼロになっても家計に響かない金額で。</li>
+<li><b>3回以上に分けて買う</b>（例：決算発表のたびに1/3ずつ）。高値づかみを避けられる。</li>
+<li><b>日本株と米国株を混ぜる</b>と、為替や各国の相場の偏りもならせる。</li>
+<li>買う前に「なぜ買うのか（きっかけ）」をメモし、それが崩れたら見直す。</li>
+</ul>
+
+<footer>
+作成日：2026年10月18日｜株価・財務：Yahoo Finance（2026年10月16日終値・直近12か月）｜ニュース：各社決算資料・報道（2026年10月までの検索結果）。<br>
+同業比較に使った企業：AI半導体（Alchip、GUC、Marvell、Broadcom、Qualcomm）、光通信（Coherent、Lumentum、Fabrinet、フジクラ）、電力（日立、富士電機、Eaton）、原子力（BWXT、日本製鋼所、Oklo、NuScale）、宇宙（Rocket Lab、Planet、AST SpaceMobile、ispace）、ロボット（ファナック、安川電機、SMC）、材料（東京応化、信越化学、Entegris）、セキュリティ（CrowdStrike、Palo Alto、Zscaler、トレンドマイクロ）、創薬（Recursion、ネクセラファーマ）、電池（QuantumScape、Solid Power）。PSR 50倍超、予想PER 100倍超の極端な値は中央値の計算から除外。<br>
+主な参照：<a href="https://space-connect.jp/?p=22361">Space Connect（アストロスケール決算）</a>、<a href="https://www2.jpx.co.jp/disc/290A0/140120260813519889.pdf">Synspective 決算資料</a>、<a href="https://eetimes.itmedia.co.jp/ee/articles/2608/04/news051.html">EE Times Japan（ソシオネクスト）</a>、<a href="https://www.gurufocus.com/news/8941910/centrus-energy-leu-secures-900m-contract-for-haleu-production">GuruFocus（Centrus）</a>、<a href="https://www.businesswire.com/news/home/20260804329539/en/">Lattice 2Q26</a>、<a href="https://www.nasdaq.com/articles/redwire-q2-earnings-call-highlights">Redwire Q2</a>、<a href="https://www.businesswire.com/news/home/20260312383715/en/">SentinelOne FY26</a>、<a href="https://quartr.com/events/schr-dinger-inc-sdgr-q2-2026_3eTj12w5">Schrödinger Q2</a>、<a href="https://filingreader.com/news-wire/tokyo/2026-06-05/santec-profit-jumps-51-on-generative-ai-demand">santec 決算</a>、<a href="https://www2.jpx.co.jp/disc/66170/140120260427512275.pdf">東光高岳 決算短信</a>、<a href="https://sharedresearch.jp/ja/companies/6324">Shared Research（ハーモニック・ドライブ）</a>、<a href="https://kabuyoho.jp/reportTarget?bcode=464A">株予報（QPS HD）</a>、<a href="https://www.gyokaidigest.com/companies/peptidream/report/2026-Q1">業界ダイジェスト（ペプチドリーム）</a>
+</footer>
 </div>
 
 <script>
-const D=[
- ["AI半導体","ソシオネクスト","6526","jp","カスタムSoC（ASIC）の設計受託で国内トップ級。先端プロセスでの設計実績が豊富。","AI向けカスタムチップ需要の追い風に対し、足元業績の谷で株価は伸び悩み。","大口顧客への依存、案件の端境期"],
- ["AI半導体","Ambarella","AMBA","us","省電力のエッジAI向け画像処理チップ。車載・監視カメラに強い。","クラウドAIの陰に隠れがちで、エッジAI本格化前の段階。","車載市場の回復ペース、競合（大手SoC）"],
- ["AI半導体","Lattice Semiconductor","LSCC","us","小型・低消費電力FPGAで高シェア。AIサーバーの制御用途にも採用。","在庫調整で業績が落ち込み、評価が一服。","産業機器市況、在庫サイクル"],
- ["光通信","santec","6777","jp","光部品・光測定器の老舗。光電融合（CPO）の検査需要に関わる。","小型で機関投資家のカバーが少ない。","受注の振れ、規模の小ささ"],
- ["光通信","精工技研","6834","jp","光コネクタ研磨・光部品の精密加工技術。データセンター向け需要。","時価総額が小さく知名度が低い。","特定顧客・特定製品への依存"],
- ["電力インフラ","東光高岳","6617","jp","変圧器・スマートメーター・EV急速充電器。電力網投資の直接の受益者。","電力株の陰で注目度が低め。","電力会社の投資計画次第"],
- ["次世代原子力","助川電気工業","7711","jp","核融合・原子力向けのヒーターや計測機器。核融合実験炉に関わる技術。","超小型株で、テーマ相場以外では注目されにくい。","値動きが極端、業績規模が小さい"],
- ["次世代原子力","木村化工機","6378","jp","原子力燃料の再処理・関連装置の技術。化学プラント装置も。","原子力再評価の中でも周辺企業として見落とされがち。","政策依存、受注の波"],
- ["次世代原子力","Centrus Energy","LEU","us","米国で数少ないHALEU（次世代炉燃料）の製造能力を持つ。","次世代炉の普及前で、収益化の時期が読みにくい。","政府契約依存、株価の変動大"],
- ["宇宙","アストロスケール","186A","jp","宇宙ごみ除去・衛星の寿命延長サービスで世界の先行企業。","赤字で上場後の株価は低迷、評価が定まっていない。","赤字継続、ミッション失敗"],
- ["宇宙","QPS研究所","5595","jp","小型SAR衛星（夜間・悪天候でも撮影）の高精細技術。","防衛・政府需要が伸びる中、事業規模はまだ小さい。","打ち上げ遅延、政府依存"],
- ["宇宙","Synspective","290A","jp","小型SAR衛星とデータ解析サービス。","上場から日が浅く、実績の評価はこれから。","衛星数の積み上げペース、資金調達"],
- ["宇宙","Redwire","RDW","us","宇宙用構造物・太陽電池パネル・宇宙での製造技術。","同業のRocket Labほど注目されていない。","財務の重さ、統合リスク"],
- ["ロボティクス","ハーモニック・ドライブ・システムズ","6324","jp","ロボット関節用の精密減速機で世界トップシェア。人型ロボットの重要部品。","産業用ロボット不況で業績・株価が下がった状態。","人型ロボット量産の遅れ、中国勢の追い上げ"],
- ["ロボティクス","ナブテスコ","6268","jp","産業用ロボット向け精密減速機の大手。","成熟企業と見られ、ロボット成長株としての評価は限定的。","設備投資の循環、中国市場"],
- ["半導体材料","トリケミカル研究所","4369","jp","先端半導体の成膜材料（high-k材料など）に強い高純度化学品メーカー。","業績の伸びが一服し、株価は高値から調整。","特定顧客への依存、市況"],
- ["半導体材料","フィックスターズ","3687","jp","AI・量子計算向けのソフトウェア高速化技術。量子アニーリング活用も。","「ソフト受託」と見られがちで技術力ほど評価されていない。","人材確保、案件ベースの収益"],
- ["セキュリティ","FFRIセキュリティ","3692","jp","国産のサイバーセキュリティ製品と脅威研究。官公庁・防衛向け。","経済安全保障の追い風の割に小型で注目度が低い。","規模の小ささ、海外大手との競争"],
- ["セキュリティ","SentinelOne","S","us","AIを使ったエンドポイント防御で技術評価が高い。","CrowdStrikeなど大手に比べPSRが低く、黒字化の途上。","競争激化、成長率の鈍化"],
- ["AI創薬","ペプチドリーム","4587","jp","独自のペプチド探索技術。大手製薬との提携が多い。","株価は高値から大きく下がり、提携の価値が十分に反映されていない可能性。","臨床の成否、提携収入の変動"],
- ["AI創薬","Schrödinger","SDGR","us","物理シミュレーション＋AIの分子設計ソフトで業界標準級。","自社創薬の赤字で評価が抑えられている。","臨床失敗、ソフト売上の伸び悩み"],
- ["次世代電池","オハラ","5218","jp","光学ガラスと、全固体電池向けのガラスセラミックス電解質技術。","本業の光学ガラスの会社と見られ、電池材料の価値が見えにくい。","全固体電池の量産時期"]
-];
-const cats=["すべて",...new Set(D.map(d=>d[0]))];
-let cur="すべて";
-const f=document.getElementById("filters"),g=document.getElementById("grid");
-function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
-function render(){
-  f.innerHTML=cats.map(c=>`<button class="${c===cur?"on":""}" data-c="${c}">${c}</button>`).join("");
-  g.innerHTML=D.filter(d=>cur==="すべて"||d[0]===cur).map(d=>`
-   <div class="card">
-    <h3>${esc(d[1])}</h3>
-    <div class="meta"><span class="mkt ${d[3]}">${d[3]==="jp"?"東証":"米国"} ${d[2]}</span><span class="tag">${d[0]}</span></div>
-    <p><b>技術力：</b>${esc(d[4])}</p>
-    <p><b>過小評価の理由：</b>${esc(d[5])}</p>
-    <p class="risk"><b>リスク：</b>${esc(d[6])}</p>
-   </div>`).join("");
+const D=[{"t": "6526.T", "th": "AI半導体", "nm": "ソシオネクスト", "cur": "JPY", "price": 1909.0, "mcap": 334626947072, "pe": 43.854813, "fpe": 13.360862, "ps": 1.6297826, "pb": 2.6053894, "pps": 17.61235, "pfpe": 19.513735, "dd": -0.45316528215411056, "chg": -0.34398627, "an": 5, "tgt": 2260.0, "revg": 0.13, "opm": -0.01696, "cash": 37317001216, "debt": 0, "runway": 1.418331111789873, "tech": "富士通・パナソニックのSoC事業が統合。TSMCの3nm/2nm世代の設計実績があり、北米データセンター事業者や車載メーカーが顧客。", "ts": 4, "cat": "第1四半期は車載品の出荷約100億円が第2四半期にずれ込んで営業赤字。下期から新規量産品の立ち上げを予定。", "tim": "2026年10月末 第2四半期決算", "cs": 4, "vs": 5, "fs": 4, "fnote": "黒字だが設備投資・運転資金で現金が流出中（手元資金で約1.4年分）", "tot": 17}, {"t": "6378.T", "th": "次世代原子力", "nm": "木村化工機", "cur": "JPY", "price": 1129.0, "mcap": 21750179840, "pe": 8.926312, "fpe": null, "ps": 0.78805, "pb": 1.0831221, "pps": 2.72045035, "pfpe": 25.200362, "dd": -0.421025641025641, "chg": -0.02756244, "an": 0, "tgt": null, "revg": -0.06, "opm": 0.0896, "cash": 7248000000, "debt": 1816000000, "runway": null, "tech": "原子力燃料サイクル関連設備と化学プラント（蒸発・蒸留装置）。", "ts": 3, "cat": "六ヶ所再処理工場の竣工（2026年度中が目標とされる）が関連需要のきっかけ。最新の決算情報は未確認。", "tim": "2026年11月 中間決算", "cs": 3, "vs": 5, "fs": 5, "fnote": "黒字・営業キャッシュフローもプラス。増資リスクは低い", "tot": 16}, {"t": "4587.T", "th": "AI創薬", "nm": "ペプチドリーム", "cur": "JPY", "price": 1072.5, "mcap": 137888890880, "pe": null, "fpe": 9.456838, "ps": 7.1802173, "pb": 2.8398483, "pps": 18.6490725, "pfpe": 27.8385, "dd": -0.401840490797546, "chg": -0.35117966, "an": 6, "tgt": 2608.3333, "revg": 0.035, "opm": -0.31281, "cash": 23601999872, "debt": 15687999488, "runway": 5.695463289575289, "tech": "独自のペプチド探索技術（PDPS）。世界の大手製薬と多数提携し、放射性医薬品（RI）事業も持つ。", "ts": 4, "cat": "今期は黒字回帰の予想。RI医薬の臨床試験（前立腺がん、胃がんなど）が進む。", "tim": "2026年11月 第3四半期決算", "cs": 3, "vs": 5, "fs": 4, "fnote": "赤字。手元資金は現在の流出ペースで約5.7年分", "tot": 16}, {"t": "3687.T", "th": "AI半導体", "nm": "フィックスターズ", "cur": "JPY", "price": 2104.0, "mcap": 67966054400, "pe": 41.57281, "fpe": 27.57536, "ps": 6.497153, "pb": 7.4689126, "pps": 17.61235, "pfpe": 19.513735, "dd": -0.429810298102981, "chg": 0.018886209, "an": 1, "tgt": 3500.0, "revg": 0.08, "opm": 0.23735, "cash": 6560997888, "debt": 30073000, "runway": null, "tech": "AI・画像処理ソフトの高速化技術と、量子計算を使う最適化サービス「Amplify」。", "ts": 3, "cat": "量子・AI関連の案件増が焦点。目立った大型イベントは未確認。", "tim": "四半期決算ごと", "cs": 2, "vs": 5, "fs": 5, "fnote": "黒字・営業キャッシュフローもプラス。増資リスクは低い", "tot": 15}, {"t": "RDW", "th": "宇宙", "nm": "Redwire", "cur": "USD", "price": 8.39, "mcap": 2097438080, "pe": null, "fpe": -26.218752, "ps": 4.920422, "pb": 1.2776002, "pps": 24.258253, "pfpe": null, "dd": -0.68506006006006, "chg": 0.01696968, "an": 9, "tgt": 14.27778, "revg": 0.896, "opm": -0.18858999, "cash": 556966976, "debt": 90275000, "runway": 7.310333197705705, "tech": "ISSの太陽電池パネル（ROSA）や宇宙での製造技術。買収したEdge Autonomyのドローンで防衛にも参入。", "ts": 3, "cat": "第2四半期の売上は+90%で過去最高、受注残は5.4億ドル。2026年の売上見通しは4.5〜5億ドル。", "tim": "2026年11月上旬 決算", "cs": 4, "vs": 4, "fs": 4, "fnote": "赤字。手元資金は現在の流出ペースで約7.3年分", "tot": 15}, {"t": "6268.T", "th": "ロボティクス", "nm": "ナブテスコ", "cur": "JPY", "price": 4488.0, "mcap": 521737043968, "pe": 27.2, "fpe": 41.60178, "ps": 1.6846694, "pb": 1.8459405, "pps": 4.6238794, "pfpe": 21.367563, "dd": -0.2658269262228039, "chg": 0.20225024, "an": 11, "tgt": 5346.364, "revg": 0.005, "opm": 0.09052, "cash": 99583000576, "debt": 57691000832, "runway": null, "tech": "産業用ロボットの関節に使うRV減速機で、世界シェアは約6割とされる。", "ts": 5, "cat": "会社予想はアナリスト予想より控えめで、上方修正の余地がある。", "tim": "2026年10月末 第3四半期決算", "cs": 3, "vs": 2, "fs": 5, "fnote": "黒字・営業キャッシュフローもプラス。増資リスクは低い", "tot": 15}, {"t": "6777.T", "th": "光通信", "nm": "santec", "cur": "JPY", "price": 20620.0, "mcap": 242499043328, "pe": 26.96306, "fpe": 46.63048, "ps": 6.9932823, "pb": 8.409578, "pps": 6.053393, "pfpe": 16.6263335, "dd": -0.40576368876080693, "chg": 1.4173505, "an": 0, "tgt": null, "revg": 0.512, "opm": 0.33191, "cash": 15297999872, "debt": 2655000064, "runway": null, "tech": "波長可変レーザーと光測定器で世界的に知られる。AIデータセンター用トランシーバーの検査で需要増。", "ts": 4, "cat": "2026年3月期は純利益+51%で最高益、増配。株価は1年で約2.4倍になり、評価はかなり進んだ。", "tim": "2026年11月 中間決算", "cs": 3, "vs": 2, "fs": 5, "fnote": "黒字・営業キャッシュフローもプラス。増資リスクは低い", "tot": 14}, {"t": "6617.T", "th": "電力インフラ", "nm": "東光高岳", "cur": "JPY", "price": 6900.0, "mcap": 106222510080, "pe": 9.608556, "fpe": 42.566315, "ps": 0.9294446, "pb": 1.5460479, "pps": 2.3298872, "pfpe": 24.023184, "dd": -0.22033898305084743, "chg": 1.166405, "an": 0, "tgt": null, "revg": 0.095, "opm": 0.08429, "cash": 23154999296, "debt": 1879000064, "runway": null, "tech": "東京電力系。変圧器・受変電設備・スマートメーター・EV急速充電器を手がける。", "ts": 3, "cat": "2026年3月期は営業利益+60%で過去最高（上方修正2回）。予想PERが実績より高く、今期は減益予想の可能性があるため確認が必要。", "tim": "2026年10月末 中間決算", "cs": 3, "vs": 3, "fs": 5, "fnote": "黒字・営業キャッシュフローもプラス。増資リスクは低い", "tot": 14}, {"t": "290A.T", "th": "宇宙", "nm": "Synspective", "cur": "JPY", "price": 1219.0, "mcap": 162048868352, "pe": null, "fpe": null, "ps": 59.141922, "pb": 4.27063, "pps": 24.258253, "pfpe": null, "dd": -0.430373831775701, "chg": 0.28994703, "an": 5, "tgt": 1842.6, "revg": 4.274, "opm": -1.74823, "cash": 16209000448, "debt": 10652000256, "runway": 0.8218167926788013, "tech": "小型SAR衛星「StriX」。防衛省から約5年・約961億円の衛星コンステレーション事業を受注。", "ts": 4, "cat": "受注残は1,217億円で時価総額を上回る。防衛省案件の売上計上が4月に始まり、2026年内に運用10機を目標。", "tim": "2026年11月 第3四半期決算", "cs": 5, "vs": 1, "fs": 4, "fnote": "黒字だが設備投資・運転資金で現金が流出中（手元資金で約0.8年分）", "tot": 14}, {"t": "6324.T", "th": "ロボティクス", "nm": "ハーモニック・ドライブ・システムズ", "cur": "JPY", "price": 5350.0, "mcap": 506467352576, "pe": 317.88474, "fpe": 70.683044, "ps": 8.072227, "pb": 6.223101, "pps": 4.6238794, "pfpe": 21.367563, "dd": -0.41530054644808745, "chg": 0.671875, "an": 10, "tgt": 7597.0, "revg": 0.236, "opm": 0.11043, "cash": 22164000768, "debt": 16888999936, "runway": null, "tech": "小型精密減速機（波動歯車）で世界シェア首位。人型ロボットの関節に欠かせない部品。", "ts": 5, "cat": "減速機の受注は前年比+27%。米国ではAIロボット向けが伸びた。9月に業績予想を修正（内容は要確認）。", "tim": "2026年11月 中間決算", "cs": 3, "vs": 1, "fs": 5, "fnote": "黒字・営業キャッシュフローもプラス。増資リスクは低い", "tot": 14}, {"t": "4369.T", "th": "半導体材料", "nm": "トリケミカル研究所", "cur": "JPY", "price": 3195.0, "mcap": 103826980864, "pe": 16.988356, "fpe": 18.91652, "ps": 3.9608967, "pb": 2.7145724, "pps": 4.1622314, "pfpe": 27.430956, "dd": -0.2828282828282829, "chg": 0.095303416, "an": 4, "tgt": 3997.5, "revg": 0.243, "opm": 0.24513, "cash": 10078000128, "debt": 5781000192, "runway": 5.0911846249467505, "tech": "先端半導体の成膜に使う高純度の化学材料（high-k材料など）。海外の大手半導体メーカーに供給。", "ts": 4, "cat": "2nm世代の材料需要。2026年1月期の営業利益は約59億円。", "tim": "2026年12月 第3四半期決算", "cs": 3, "vs": 2, "fs": 5, "fnote": "黒字・営業キャッシュフローもプラス。増資リスクは低い", "tot": 14}, {"t": "LSCC", "th": "AI半導体", "nm": "Lattice Semiconductor", "cur": "USD", "price": 103.65, "mcap": 14721437696, "pe": 414.6, "fpe": 32.241608, "ps": 22.609512, "pb": 18.054346, "pps": 17.61235, "pfpe": 19.513735, "dd": -0.33985096490669375, "chg": 0.4741857, "an": 14, "tgt": 164.2143, "revg": 0.622, "opm": 0.1333, "cash": 173304992, "debt": 38082000, "runway": null, "tech": "小型・低消費電力FPGAで世界トップクラス。AIサーバーの制御チップとして採用が拡大。", "ts": 4, "cat": "第2四半期の売上は前年比+62%で過去最高。AMI買収（16.5億ドル）を7月に完了し、年換算売上10億ドル超えへ。", "tim": "2026年11月上旬 第3四半期決算", "cs": 3, "vs": 1, "fs": 5, "fnote": "黒字・営業キャッシュフローもプラス。増資リスクは低い", "tot": 13}, {"t": "7711.T", "th": "次世代原子力", "nm": "助川電気工業", "cur": "JPY", "price": 4675.0, "mcap": 25781639168, "pe": 28.84556, "fpe": null, "ps": 6.321634, "pb": 8.791328, "pps": 2.72045035, "pfpe": 25.200362, "dd": -0.6183673469387755, "chg": -0.5795863, "an": 0, "tgt": null, "revg": 0.263, "opm": 0.05325, "cash": 663926016, "debt": 1440491008, "runway": null, "tech": "原子力・核融合向けのヒーター、温度センサー、電磁ポンプ。核融合の研究施設への納入実績。", "ts": 3, "cat": "第3四半期時点で通期経常利益予想の約89%を達成しており、上振れの余地がある。", "tim": "2026年11月 本決算（9月期）", "cs": 3, "vs": 2, "fs": 5, "fnote": "黒字・営業キャッシュフローもプラス。増資リスクは低い", "tot": 13}, {"t": "LEU", "th": "次世代原子力", "nm": "Centrus Energy", "cur": "USD", "price": 114.94, "mcap": 2350880256, "pe": 53.710278, "fpe": 30.572971, "ps": 4.9607096, "pb": 2.7127686, "pps": 2.72045035, "pfpe": 25.200362, "dd": -0.7189662338932492, "chg": -0.7125566, "an": 18, "tgt": 240.82056, "revg": 0.14, "opm": 0.053379998, "cash": 1868499968, "debt": 1177500032, "runway": 14.677925907305577, "tech": "米国で次世代炉燃料（HALEU）を商業規模で製造できる数少ない企業。米エネルギー省（DOE）と契約。", "ts": 4, "cat": "2026年7月にDOEから約9億ドルのHALEU増産契約を受けたと報じられた（単一ソース・要確認）。株価は高値から約7割下落。", "tim": "2026年11月上旬 決算", "cs": 4, "vs": 1, "fs": 4, "fnote": "黒字だが設備投資などで現金が流出中（手元資金で約14.7年分）", "tot": 13}, {"t": "464A.T", "th": "宇宙", "nm": "QPSホールディングス（旧QPS研究所）", "cur": "JPY", "price": 1529.0, "mcap": 85558607872, "pe": 65.79174, "fpe": null, "ps": 22.497662, "pb": 2.6551313, "pps": 24.258253, "pfpe": null, "dd": -0.6590858416945373, "chg": -0.24679804, "an": 5, "tgt": 2953.0, "revg": null, "opm": 0.31451, "cash": 18983000064, "debt": 6300000256, "runway": 36.089353733840305, "tech": "九州大学発。重さ100kg級の小型SAR衛星で、分解能46cmの高精細画像を撮れる。政府・防衛向け。", "ts": 4, "cat": "防衛省の衛星活用の拡大と、衛星機数の増加。持株会社に移行し、証券コードが5595から464Aに変更。", "tim": "2027年1月 中間決算（11月期）", "cs": 3, "vs": 2, "fs": 4, "fnote": "黒字だが設備投資などで現金が流出中（手元資金で約36.1年分）", "tot": 13}, {"t": "S", "th": "セキュリティ", "nm": "SentinelOne", "cur": "USD", "price": 21.58, "mcap": 7510900224, "pe": null, "fpe": 46.82042, "ps": 6.8361454, "pb": 5.1552796, "pps": 17.227605, "pfpe": 36.878307, "dd": -0.1856603773584906, "chg": 0.25904322, "an": 30, "tgt": 24.75, "revg": 0.206, "opm": -0.22719, "cash": 655248000, "debt": 0, "runway": null, "tech": "AIを使うセキュリティ基盤「Singularity」。米ガートナーの評価でリーダー格。", "ts": 4, "cat": "ARRは11億ドル（+22%）。調整後ベースでは通期の営業黒字を達成し、会計上の黒字化が次の焦点。", "tim": "2026年12月上旬 決算", "cs": 3, "vs": 3, "fs": 3, "fnote": "赤字（資金の流出額は確認できず）", "tot": 13}, {"t": "SDGR", "th": "AI創薬", "nm": "Schrödinger", "cur": "USD", "price": 22.6, "mcap": 1690607360, "pe": null, "fpe": -16.74074, "ps": 6.5265594, "pb": 5.006646, "pps": 18.6490725, "pfpe": 27.8385, "dd": -0.3309650680876258, "chg": 0.028207421, "an": 7, "tgt": 25.57143, "revg": 0.075, "opm": -0.70551, "cash": 413739008, "debt": 108003000, "runway": 3.261125624655159, "tech": "物理計算とAIを組み合わせた分子設計ソフトで業界標準級。大手製薬の多くが利用。", "ts": 4, "cat": "第2四半期は純利益が黒字に転換。新契約額（ACV）は+27%。AI研究支援「Bunsen」をBMSに導入。", "tim": "2026年11月上旬 決算", "cs": 3, "vs": 3, "fs": 3, "fnote": "赤字。手元資金は現在の流出ペースで約3.3年分", "tot": 13}, {"t": "5218.T", "th": "次世代電池", "nm": "オハラ", "cur": "JPY", "price": 1725.0, "mcap": 40941895680, "pe": 29.321774, "fpe": 21.010963, "ps": 1.2771195, "pb": 0.76625735, "pps": null, "pfpe": null, "dd": -0.05994550408719346, "chg": 0.48835206, "an": 0, "tgt": null, "revg": 0.252, "opm": 0.094849996, "cash": 15498000384, "debt": 6232999936, "runway": null, "tech": "光学ガラス大手。全固体電池向けのガラスセラミックス電解質（LICGC）を持つ。", "ts": 3, "cat": "全固体電池向けの量産時期は未定。株価純資産倍率（PBR）は0.8倍で、資産面では割安。", "tim": "2026年12月 決算（10月期）", "cs": 2, "vs": 3, "fs": 5, "fnote": "黒字・営業キャッシュフローもプラス。増資リスクは低い", "tot": 13}, {"t": "AMBA", "th": "AI半導体", "nm": "Ambarella", "cur": "USD", "price": 61.7, "mcap": 2723497984, "pe": null, "fpe": 55.060776, "ps": 6.518649, "pb": 4.3905215, "pps": 17.61235, "pfpe": 19.513735, "dd": -0.3618781673389182, "chg": -0.26964962, "an": 11, "tgt": 89.36364, "revg": 0.132, "opm": -0.07531, "cash": 272332000, "debt": 12642000, "runway": null, "tech": "独自のAI演算回路（CVflow）を持つエッジAI用チップ。車載・監視カメラで実績があり、Samsaraなどが採用。", "ts": 4, "cat": "4nmのCV7は2027年初めに収益化の見込み。ロボット向けN1の量産も控える。車載の自動運転分野は採用決定が遅れている。", "tim": "2026年11月下旬 決算", "cs": 3, "vs": 2, "fs": 3, "fnote": "赤字（資金の流出額は確認できず）", "tot": 12}, {"t": "186A.T", "th": "宇宙", "nm": "アストロスケール", "cur": "JPY", "price": 1081.0, "mcap": 153632292864, "pe": null, "fpe": -306.2323, "ps": 26.101284, "pb": 11.9521475, "pps": 24.258253, "pfpe": null, "dd": -0.6414593698175788, "chg": 0.18013096, "an": 2, "tgt": 1225.0, "revg": -0.044, "opm": -2.29987, "cash": 34952814592, "debt": 30472124416, "runway": 2.5334716538347606, "tech": "衛星に接近して捕獲する技術（RPO）。2024年に宇宙ごみへの接近撮影に世界で初めて成功。顧客はJAXA、英国宇宙庁、ESAなど。", "ts": 4, "cat": "6月に大型の資金調達を実施。宇宙ごみを除去するADRAS-J2（JAXAが約120億円で発注）は開発中。", "tim": "2026年12月 第2四半期決算", "cs": 3, "vs": 3, "fs": 2, "fnote": "赤字。手元資金は現在の流出ペースで約2.5年分。増資リスクに注意", "tot": 12}, {"t": "3692.T", "th": "セキュリティ", "nm": "FFRIセキュリティ", "cur": "JPY", "price": 8840.0, "mcap": 69920022528, "pe": 68.18883, "fpe": 170.0, "ps": 16.04038, "pb": 18.610643, "pps": 17.227605, "pfpe": 36.878307, "dd": -0.35942028985507246, "chg": -0.32364196, "an": 0, "tgt": null, "revg": 0.012, "opm": 0.20397, "cash": 3335000064, "debt": 8000000, "runway": null, "tech": "国産のエンドポイント防御（EDR）製品「yarai」と脅威研究。防衛省・官公庁向けに実績。", "ts": 3, "cat": "今期の売上は+18%の予想。能動的サイバー防御の制度導入が追い風。", "tim": "2026年11月 中間決算", "cs": 3, "vs": 1, "fs": 5, "fnote": "黒字・営業キャッシュフローもプラス。増資リスクは低い", "tot": 12}, {"t": "6834.T", "th": "光通信", "nm": "精工技研", "cur": "JPY", "price": 5840.0, "mcap": 261026725888, "pe": 34.913612, "fpe": 35.523117, "ps": 7.871972, "pb": 7.3338547, "pps": 6.053393, "pfpe": 16.6263335, "dd": -0.23660130718954253, "chg": 2.3144155, "an": 1, "tgt": 8400.0, "revg": 0.555, "opm": 0.3161, "cash": 18773999616, "debt": 0, "runway": null, "tech": "光コネクタの研磨装置と光部品の精密加工技術。データセンター向けの需要が拡大。", "ts": 3, "cat": "上方修正と増配を発表済み。株価は1年で約3.3倍になり、評価はほぼ織り込み済みの可能性。", "tim": "2026年11月 中間決算", "cs": 2, "vs": 1, "fs": 5, "fnote": "黒字・営業キャッシュフローもプラス。増資リスクは低い", "tot": 11}];
+const LBL={ts:"技術",vs:"評価余地",cs:"きっかけ",fs:"財務"};
+const fmt=(x,n=1)=>x==null||!isFinite(x)?"−":x.toLocaleString("ja-JP",{maximumFractionDigits:n,minimumFractionDigits:n});
+const pct=x=>x==null?"−":`<span class="${x>=0?"up":"down"}">${x>=0?"+":""}${Math.round(x*100)}%</span>`;
+const cap=r=>r.cur==="JPY"?fmt(r.mcap/1e8,0)+"億円":fmt(r.mcap/1e8,0)+"億ドル";
+const price=r=>r.cur==="JPY"?fmt(r.price,0)+"円":"$"+fmt(r.price,2);
+const pe=x=>x==null||x<=0?"赤字":fmt(x,1)+"倍";
+const dots=n=>"<span class='dots'>"+"<i>●</i>".repeat(n)+"<u>●</u>".repeat(5-n)+"</span>";
+const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const mk=r=>r.cur==="JPY"?["jp","東証"]:["us","米国"];
+const code=t=>t.replace(".T","");
+
+function rank(){
+  const rows=[...D].sort((a,b)=>b.tot-a.tot);
+  document.getElementById("rank").innerHTML="<thead><tr><th>#</th><th>企業</th><th>テーマ</th><th>技術</th><th>評価余地</th><th>きっかけ</th><th>財務</th><th>合計</th></tr></thead><tbody>"+
+  rows.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.nm)}<br><span class="muted">${code(r.t)}</span></td><td>${r.th}</td><td class="n">${r.ts}</td><td class="n">${r.vs}</td><td class="n">${r.cs}</td><td class="n">${r.fs}</td><td class="n"><b>${r.tot}</b></td></tr>`).join("")+"</tbody>";
 }
-f.addEventListener("click",e=>{const b=e.target.closest("button");if(b){cur=b.dataset.c;render();}});
-render();
+const themes=["すべて",...new Set(D.map(d=>d.th))];
+const sorts=[["tot","総合"],["vs","評価余地"],["cs","きっかけ"],["fs","財務"],["ts","技術"]];
+let th="すべて",so="tot";
+function cards(){
+  document.getElementById("themes").innerHTML="<span class='lbl'>テーマ</span>"+themes.map(c=>`<button data-th="${c}" class="${c===th?"on":""}">${c}</button>`).join("");
+  document.getElementById("sorts").innerHTML="<span class='lbl'>並び順</span>"+sorts.map(([k,l])=>`<button data-so="${k}" class="${k===so?"on":""}">${l}</button>`).join("");
+  const rows=D.filter(r=>th==="すべて"||r.th===th).sort((a,b)=>b[so]-a[so]||b.tot-a.tot);
+  document.getElementById("grid").innerHTML=rows.map(r=>{
+    const [cls,lab]=mk(r);
+    const psr=r.pps?`${fmt(r.ps)}倍 <span class="muted">(同業 ${fmt(r.pps)}倍)</span>`:`${fmt(r.ps)}倍 <span class="muted">(同業比較なし)</span>`;
+    const fpe=r.fpe&&r.fpe>0?`${fmt(r.fpe)}倍`+(r.pfpe?` <span class="muted">(同業 ${fmt(r.pfpe)}倍)</span>`:""):"赤字・予想なし";
+    const tgt=r.tgt?`${r.cur==="JPY"?fmt(r.tgt,0)+"円":"$"+fmt(r.tgt,1)}（現値比 ${pct(r.tgt/r.price-1)}）`:"−";
+    return `<div class="card">
+     <div class="head"><div><h3>${esc(r.nm)}</h3>
+      <div class="meta"><span class="mkt ${cls}">${lab} ${code(r.t)}</span><span class="tag">${r.th}</span></div></div>
+      <div class="total">${r.tot}<small>/20</small></div></div>
+     <div class="kpis">
+      <div class="kpi"><span>株価</span><b>${price(r)}</b></div>
+      <div class="kpi"><span>時価総額</span><b>${cap(r)}</b></div>
+      <div class="kpi"><span>1年騰落</span><b>${pct(r.chg)}</b></div>
+      <div class="kpi"><span>高値から</span><b>${pct(r.dd)}</b></div>
+      <div class="kpi"><span>売上成長</span><b>${pct(r.revg)}</b></div>
+      <div class="kpi"><span>営業利益率</span><b>${r.opm==null?"−":pct(r.opm)}</b></div>
+     </div>
+     <div class="sec"><div class="t">技術の裏づけ ${dots(r.ts)}</div><p>${esc(r.tech)}</p></div>
+     <div class="sec"><div class="t">評価の余地 ${dots(r.vs)}</div>
+      <p>PSR：${psr}</p><p>予想PER：${fpe}／実績PER：${pe(r.pe)}</p>
+      <p>PBR：${fmt(r.pb)}倍／アナリスト：${r.an?r.an+"人":"ほぼなし"}</p>
+      <p>平均目標株価：${tgt}</p></div>
+     <div class="sec"><div class="t">きっかけ ${dots(r.cs)}</div><p>${esc(r.cat)}</p><p class="muted">次の注目日：${esc(r.tim)}</p></div>
+     <div class="sec"><div class="t">財務 ${dots(r.fs)}</div><p>${esc(r.fnote)}</p>
+      <p class="muted">現金 ${r.cur==="JPY"?fmt(r.cash/1e8,0)+"億円":fmt(r.cash/1e8,1)+"億ドル"}／有利子負債 ${r.cur==="JPY"?fmt(r.debt/1e8,0)+"億円":fmt(r.debt/1e8,1)+"億ドル"}</p></div>
+    </div>`}).join("");
+}
+document.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.th){th=b.dataset.th;cards();} if(b.dataset.so){so=b.dataset.so;cards();}});
+
+const B=[
+ ["コア枠（黒字・割安）",50,"黒字で財務が安定し、同業より割安な企業。",["6526.T","6268.T","6617.T","4369.T","6378.T"]],
+ ["成長枠（受注残・量産が近い）",35,"赤字や高めの評価でも、大型受注や量産開始が近い企業。",["290A.T","RDW","LEU","4587.T","S"]],
+ ["夢枠（長期・高リスク）",15,"成功すれば大きいが、資金繰りや技術の実用化に不確実性が大きい企業。",["186A.T","464A.T","7711.T","5218.T"]]
+];
+document.getElementById("buckets").innerHTML=B.map(([n,p,desc,ts])=>{
+  const per=(p/ts.length).toFixed(0);
+  return `<div class="card"><div class="head"><h3>${n}</h3><div class="total">${p}<small>%</small></div></div>
+  <div class="bar" style="width:${p}%"></div><p class="muted" style="font-size:.84rem;margin:4px 0">${desc}</p>
+  <p style="font-size:.84rem;margin:4px 0">${ts.map(t=>{const r=D.find(x=>x.t===t);return `${esc(r.nm)}（${r.th}）`}).join("、")}</p>
+  <p class="muted" style="font-size:.78rem;margin:0">1銘柄あたり約${per}%・${new Set(ts.map(t=>D.find(x=>x.t===t).th)).size}テーマに分散</p></div>`}).join("");
+rank();cards();
 </script>
 </body>
 </html>
