@@ -141,7 +141,8 @@ td:first-child { font-weight: 700; white-space: nowrap; }
     <li><time>10/21 04:00</time><span>全プランのサーバーを順次停止。第1報（この時点では「閲覧された可能性」、悪用は未確認）。同日以降、利用者から不正取引の報告</span></li>
     <li><time>10/22</time><span>警察に相談。第2報で「ログイン情報等が取得され、不正に利用された可能性」に表現を強める。利用者に犯行声明とみられるメールが届いたとSNSで報告が相次ぐ。金融庁が金融先物取引業協会経由でFX事業者に注意喚起（報道）。OANDA証券などが注意喚起</span></li>
     <li><time>10/23</time><span>第3報。全セッション切断を要請、問い合わせ窓口を24時間化</span></li>
-    <li><time>10/24</time><span>第4報。システムの問題と情報持ち出しを認め、攻撃者からの金銭要求と脅迫内容を公表。補償・見舞金・代替サービスを発表。政府に能動的サイバー防御の発動を要請</span></li>
+    <li><time>10/24</time><span>第4報（11:50時点）。システムの問題と情報持ち出しを認め、攻撃者からの金銭要求と脅迫内容を公表。補償・見舞金・代替サービスを発表。政府に能動的サイバー防御の発動を要請</span></li>
+    <li><time>10/24</time><span>第5報。新しい事実はなく、利用者への依頼をあらためて出したもの。自分の端末（PC・スマートフォン）のウイルスフルスキャンとバックアップを「至急」の最初の依頼に格上げ</span></li>
   </ol>
 </section>
 
@@ -155,7 +156,7 @@ td:first-child { font-weight: 700; white-space: nowrap; }
   </div>
 
   <div class="tier A">
-    <div class="tier-head"><span class="badge">A</span><p>GMOインターネット／GMOインターネットグループ 第1〜4報、適時開示</p></div>
+    <div class="tier-head"><span class="badge">A</span><p>GMOインターネット／GMOインターネットグループ 第1〜5報、適時開示</p></div>
     <div class="items">
       <div class="item">
         <h3>侵害の事実</h3>
@@ -195,7 +196,18 @@ td:first-child { font-weight: 700; white-space: nowrap; }
           <li>不正取引と認めた取引による実現損失（差損・手数料）を補償。市場変動の損失、逸失利益、間接損害は対象外。取引事業者の返金分は差し引き。申請方法は11/6までに案内。</li>
           <li>全利用者に一律5,000円の見舞金。現行基盤は再開せず、独立基盤の代替サービスを6か月無償で提供。</li>
         </ul>
-        <p class="src">出典：<a href="https://www.onamae.com/news/article/11584/">第1報</a>／<a href="https://group.gmo/info/alert/20261022/">第2報</a>／<a href="https://group.gmo/info/alert/20261023/">第3報</a>／<a href="https://group.gmo/info/alert/20261024/">第4報</a>／<a href="https://internet.gmo/news/article/249/">第4報（GMOインターネット）</a></p>
+      </div>
+      <div class="item">
+        <h3>第5報（10/24）：利用者へのあらためての依頼</h3>
+        <ul>
+          <li>原因、侵入経路、被害額などの新しい事実は含まず、被害拡大を防ぐための依頼を再掲。</li>
+          <li>全利用者に、自分の端末（PC・スマートフォン等）のウイルス対策ソフトによるフルスキャンとデータのバックアップを<q>至急</q>依頼。第3報では予防的措置として後ろに置かれていた項目を先頭に移した。</li>
+          <li>取引口座・取引ツールのパスワードは<q>FX取引に使用していない端末</q>から変更し、ログイン中の全セッションを切断（証券・FX会社への依頼を含む）。変更済みの人にも<q>必ず実施してください</q>。</li>
+          <li>サーバー内に保存したID・パスワード、使い回しやブラウザ保存のパスワードも変更。二要素認証を設定。</li>
+          <li>攻撃者を名乗る連絡には<q>メール内のURLやファイルを開かず、返信もしないでください</q>。</li>
+        </ul>
+        <p class="note">端末スキャンを全員に「至急」で求めたのは、第4報で公表した「接続した顧客PCへのランサムウェア攻撃」という脅迫を意識した対応と読めます。GMOは理由を説明していません。</p>
+        <p class="src">出典：<a href="https://www.onamae.com/news/article/11584/">第1報</a>／<a href="https://group.gmo/info/alert/20261022/">第2報</a>／<a href="https://group.gmo/info/alert/20261023/">第3報</a>／<a href="https://group.gmo/info/alert/20261024/">第4報</a>／<a href="https://internet.gmo/news/article/249/">第4報（GMOインターネット）</a>／<a href="https://group.gmo/info/alert/2026102402/">第5報</a>／<a href="https://www.onamae.com/news/article/11599/">第5報（お名前.com）</a></p>
       </div>
     </div>
   </div>
@@ -276,7 +288,7 @@ td:first-child { font-weight: 700; white-space: nowrap; }
         <tr><td>口座残高の「破壊」</td><td>盗んだ情報で顧客の取引口座にログインし、損失が出る取引を繰り返して残高を消す。<q>合計2800万ドル相当（全残高の10％）の資金を消滅させました</q>と主張。利用者の資金を奪うのではなく、損失を出させてGMOへの圧力に使う形</td><td>脅迫文（coki掲載）</td><td><span class="badge D">D</span></td></tr>
         <tr><td>被害額「66億円」</td><td>24時間で66億円相当の口座を破壊したとする主張。2,800万ドル（約40億円）とも合わず、出所をたどれない</td><td>X投稿→まとめサイト</td><td><span class="badge D">D</span></td></tr>
         <tr><td>攻撃対象の拡大</td><td>国内外70社超の証券・FX会社の口座で不正操作を続けると脅迫。パスワードを変えても無駄、解約者にも及ぶとの伝聞あり</td><td>GMO第4報（脅迫内容として）、X投稿</td><td><span class="badge A">A</span>（脅迫の存在）</td></tr>
-        <tr><td>接続元PCへの攻撃</td><td>本サービスに接続した利用者PCの情報を公開し、ランサムウェア攻撃を行うと脅迫。リモートデスクトップで接続していた手元のPCまで狙えると示唆している</td><td>GMO第4報（脅迫内容として）</td><td><span class="badge A">A</span>（脅迫の存在）</td></tr>
+        <tr><td>接続元PCへの攻撃</td><td>本サービスに接続した利用者PCの情報を公開し、ランサムウェア攻撃を行うと脅迫。リモートデスクトップで接続していた手元のPCまで狙えると示唆している。GMOは第5報で全利用者に端末のフルスキャンとバックアップを至急求めた</td><td>GMO第4報（脅迫内容として）、第5報</td><td><span class="badge A">A</span>（脅迫の存在）</td></tr>
         <tr><td>GMO内部情報の暴露</td><td>GMOのシステム・運用体制の情報を公開すると脅迫。顧客の機密データをすべて公開するとも主張</td><td>GMO第4報、脅迫文</td><td><span class="badge A">A</span>／<span class="badge D">D</span></td></tr>
         <tr><td>事前通告と動機</td><td>GMOにハッキングの事実を伝え続けたが無視されたので実行した、と主張。GMOはいつ要求を受けたか公表していない</td><td>被害者が公開した脅迫メールの一部（X）</td><td><span class="badge D">D</span></td></tr>
         <tr><td>被害者への「訴訟支援」</td><td>顧客に非はないとして、GMOを訴える被害者に裁判用の証拠一式を配ると主張。利用者を味方につけ、GMOへの圧力を強める狙いとみられる</td><td>X投稿（受信メールの紹介）</td><td><span class="badge D">D</span></td></tr>
@@ -300,6 +312,7 @@ td:first-child { font-weight: 700; white-space: nowrap; }
 <section aria-labelledby="s-src">
   <h2 id="s-src">主な情報源</h2>
   <ol class="sources">
+    <li><a href="https://group.gmo/info/alert/2026102402/">GMOインターネットグループ 第5報（10/24）</a>／<a href="https://www.onamae.com/news/article/11599/">お名前.com版</a></li>
     <li><a href="https://group.gmo/info/alert/20261024/">GMOインターネットグループ 第4報（10/24）</a></li>
     <li><a href="https://group.gmo/info/alert/20261023/">同 第3報（10/23）</a>／<a href="https://group.gmo/info/alert/20261022/">第2報（10/22）</a>／<a href="https://www.onamae.com/news/article/11584/">第1報（10/21）</a></li>
     <li><a href="https://www.itmedia.co.jp/news/article/2610/23/2000002532/">ITmedia NEWS（10/23）</a></li>
