@@ -1,0 +1,314 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>お名前.com デスクトップクラウド侵害</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho+B1:wght@700;800&display=swap">
+<style>
+/* Layout: 調査報告書。左に信用度ラベル、右に事象を並べる一段組み。信用度を色帯で示す */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --fg: #1b2230;
+  --muted: #5a6475;
+  --line: #d9dde5;
+  --accent: #23407a;
+  --tA: #1f7a4d; --tA-bg: #e6f3ec;
+  --tB: #1f5fa8; --tB-bg: #e7eef8;
+  --tC: #9a6400; --tC-bg: #f8f0de;
+  --tD: #b0322a; --tD-bg: #f8e6e4;
+  --f-display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --f-body: "IBM Plex Sans JP", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --surface: #1a2029; --fg: #e3e7ee; --muted: #9aa4b5; --line: #2c3442; --accent: #8fb0ee;
+    --tA: #6fd19f; --tA-bg: #16302a; --tB: #86b6f0; --tB-bg: #172840;
+    --tC: #e9b55a; --tC-bg: #352a14; --tD: #f08a80; --tD-bg: #3a1c1a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --fg: #e3e7ee; --muted: #9aa4b5; --line: #2c3442; --accent: #8fb0ee;
+  --tA: #6fd19f; --tA-bg: #16302a; --tB: #86b6f0; --tB-bg: #172840;
+  --tC: #e9b55a; --tC-bg: #352a14; --tD: #f08a80; --tD-bg: #3a1c1a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--f-body); font-size: 15px; line-height: 1.8;
+}
+.wrap {
+  max-width: 980px; margin: 0 auto;
+  padding-block: 40px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 44px;
+}
+h1, h2 { font-family: var(--f-display); text-wrap: balance; line-height: 1.35; margin: 0; }
+h1 { font-size: clamp(1.7rem, 4.4vw, 2.5rem); }
+h2 { font-size: 1.45rem; padding-bottom: 8px; border-bottom: 2px solid var(--fg); }
+h3 { font-size: 1.05rem; margin: 0; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; word-break: break-all; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.eyebrow { font-family: var(--f-mono); font-size: .78rem; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+header { display: grid; gap: 14px; }
+.lede { max-width: 68ch; color: var(--muted); }
+section { display: grid; gap: 18px; min-width: 0; }
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 4px; }
+.fact b { font-family: var(--f-mono); font-size: 1.3rem; font-variant-numeric: tabular-nums; font-weight: 500; }
+.fact span { font-size: .85rem; color: var(--muted); }
+.keypoints { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; max-width: 72ch; }
+
+/* 信用度の凡例 */
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.legend div { border-left: 4px solid var(--c); background: var(--cbg); padding: 10px 12px; border-radius: 0 6px 6px 0; display: grid; gap: 2px; }
+.legend strong { color: var(--c); }
+.legend small { color: var(--muted); font-size: .82rem; line-height: 1.6; }
+.A { --c: var(--tA); --cbg: var(--tA-bg); }
+.B { --c: var(--tB); --cbg: var(--tB-bg); }
+.C { --c: var(--tC); --cbg: var(--tC-bg); }
+.D { --c: var(--tD); --cbg: var(--tD-bg); }
+
+.tier { display: grid; grid-template-columns: 150px 1fr; gap: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
+.tier-head { display: grid; gap: 6px; align-content: start; }
+.badge { display: inline-block; justify-self: start; font-family: var(--f-mono); font-weight: 500; font-size: .8rem; color: var(--c); background: var(--cbg); border: 1px solid var(--c); padding: 1px 9px; border-radius: 999px; }
+.tier-head p { font-size: .82rem; color: var(--muted); line-height: 1.6; }
+.items { display: grid; gap: 12px; min-width: 0; }
+.item { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 6px; min-width: 0; }
+.item ul { margin: 0; padding-left: 1.15em; display: grid; gap: 4px; }
+.src { font-size: .8rem; color: var(--muted); }
+.date { font-family: var(--f-mono); font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+q { font-style: normal; }
+q::before { content: "「"; } q::after { content: "」"; }
+
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.timeline li { display: grid; grid-template-columns: 112px 1fr; gap: 16px; padding: 9px 0; border-bottom: 1px dashed var(--line); }
+.timeline time { font-family: var(--f-mono); font-size: .85rem; font-variant-numeric: tabular-nums; color: var(--accent); }
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: .9rem; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+th { font-size: .78rem; letter-spacing: .05em; color: var(--muted); font-weight: 500; background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+td:first-child { font-weight: 700; white-space: nowrap; }
+
+.callout { border: 1px solid var(--tD); background: var(--tD-bg); border-radius: 6px; padding: 14px 16px; display: grid; gap: 6px; }
+.callout strong { color: var(--tD); }
+.note { font-size: .85rem; color: var(--muted); max-width: 75ch; }
+.sources { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font-size: .85rem; }
+
+@media (max-width: 640px) {
+  .tier { grid-template-columns: 1fr; gap: 10px; }
+  .timeline li { grid-template-columns: 1fr; gap: 0; }
+}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Incident brief · 2026年10月24日時点</div>
+  <h1>お名前.com デスクトップクラウド侵害 ― 事象と攻撃者の主張</h1>
+  <p class="lede">GMOインターネットのFX自動売買向けWindows VPS「お名前.com デスクトップクラウド」への不正アクセスについて、公開情報を集め、情報源の信用度ごとに整理しました。攻撃者の主張は最後に別枠でまとめています。攻撃者の主張は、どれも第三者による検証がされていません。</p>
+</header>
+
+<section aria-labelledby="s-summary">
+  <h2 id="s-summary">要点</h2>
+  <div class="summary">
+    <div class="fact"><b>26,739</b><span>影響の可能性があるサーバー数（GMO公表）。侵害が確定した数ではない</span></div>
+    <div class="fact"><b>全プラン停止</b><span>10/21 4:00から順次停止。現行基盤は再開しない方針</span></div>
+    <div class="fact"><b>70社超</b><span>攻撃者が不正操作の対象として挙げた証券・FX会社の数（GMO公表の脅迫内容）</span></div>
+    <div class="fact"><b>¥5,000</b><span>全利用者への一律見舞金。不正取引の実現損失は別途補償</span></div>
+  </div>
+  <ul class="keypoints">
+    <li>GMOは第4報で、自社サービスのシステムに<strong>セキュリティ上の問題があった</strong>ことと、<strong>顧客情報の外部持ち出し</strong>を認めた。侵入経路や脆弱性の中身は公表していない。</li>
+    <li>VPS内に保存されたMT4/MT5などの取引口座のログイン情報が使われ、利用者の口座で損失を出す不正取引が行われたとの報告が多数ある。</li>
+    <li>攻撃者はGMOに金銭を要求。GMOは拒否し、警察に刑事捜査を要請、政府に「能動的サイバー防御」の発動を求めた。</li>
+    <li>被害額について、攻撃者側からは「2,800万ドル（全残高の10%）」「66億円」といった数字が出ているが、出典がばらばらで検証されていない。</li>
+  </ul>
+</section>
+
+<section aria-labelledby="s-timeline">
+  <h2 id="s-timeline">時系列</h2>
+  <ol class="timeline">
+    <li><time>10/19</time><span>顧客からの問い合わせを受け、GMOが調査を開始</span></li>
+    <li><time>10/20</time><span>一部顧客のサーバーで「不正なプログラム」の設置を確認。新規申込みとコントロールパネルを停止</span></li>
+    <li><time>10/21 04:00</time><span>全プランのサーバーを順次停止。第1報（この時点では「閲覧された可能性」、悪用は未確認）。同日以降、利用者から不正取引の報告</span></li>
+    <li><time>10/22</time><span>警察に相談。第2報で「ログイン情報等が取得され、不正に利用された可能性」に表現を強める。利用者に犯行声明とみられるメールが届いたとSNSで報告が相次ぐ。金融庁が金融先物取引業協会経由でFX事業者に注意喚起（報道）。OANDA証券などが注意喚起</span></li>
+    <li><time>10/23</time><span>第3報。全セッション切断を要請、問い合わせ窓口を24時間化</span></li>
+    <li><time>10/24</time><span>第4報。システムの問題と情報持ち出しを認め、攻撃者からの金銭要求と脅迫内容を公表。補償・見舞金・代替サービスを発表。政府に能動的サイバー防御の発動を要請</span></li>
+  </ol>
+</section>
+
+<section aria-labelledby="s-tiers">
+  <h2 id="s-tiers">信用度別の事象</h2>
+  <div class="legend">
+    <div class="A"><strong>A｜一次・公式</strong><small>GMOの公式発表、適時開示。当事者の発表なので事実関係は最も確かだが、不利な情報は出にくい</small></div>
+    <div class="B"><strong>B｜主要報道・関係事業者</strong><small>大手報道機関、専門ニュース、FX会社の公式告知。取材や公式発表に基づく</small></div>
+    <div class="C"><strong>C｜専門ブログ・解説記事</strong><small>セキュリティブログ、FX系メディア、コラム。整理は有用だが二次情報や推測を含む</small></div>
+    <div class="D"><strong>D｜SNS・まとめ・攻撃者</strong><small>X投稿、まとめサイト、AI生成記事、攻撃者の主張。未検証として扱う</small></div>
+  </div>
+
+  <div class="tier A">
+    <div class="tier-head"><span class="badge">A</span><p>GMOインターネット／GMOインターネットグループ 第1〜4報、適時開示</p></div>
+    <div class="items">
+      <div class="item">
+        <h3>侵害の事実</h3>
+        <ul>
+          <li>10/20、一部顧客のサーバー環境に第三者が<q>不正なプログラム</q>を設置したことを確認。</li>
+          <li>影響の可能性があるサーバーは26,739件。第3報で<q>対象となり得るサーバー数であり、不正アクセスまたは情報取得が確認された件数ではありません</q>と明記。</li>
+          <li>第4報：<q>本サービスのシステムにセキュリティ上の問題が存在</q>し、<q>お客様の情報が外部に持ち出された事実を確認</q>。</li>
+          <li>侵入経路はセキュリティ専門会社と調査中。具体的な脆弱性・マルウェア名は未公表。</li>
+        </ul>
+      </div>
+      <div class="item">
+        <h3>影響を受けうる情報</h3>
+        <ul>
+          <li>サーバー内に保存されたMT4/MT5などの取引ツールや取引口座の認証情報。第2報で<q>取得され、不正に利用された可能性</q>。</li>
+          <li>クレジットカードなどの決済情報は本サービスのサーバーに保持していない。</li>
+          <li>表現の変化：第1報「閲覧された可能性・悪用は未確認」→ 第2報「取得・不正利用の可能性」→ 第4報「持ち出しを確認」。</li>
+        </ul>
+      </div>
+      <div class="item">
+        <h3>攻撃者からの要求（GMOが公表した内容）</h3>
+        <ul>
+          <li><q>当社は、本件の攻撃者とみられる者から金銭の要求を受けております</q>。応じない場合の脅迫は次の3点。
+            <ul>
+              <li>国内外の70を超える証券会社・FX会社等の顧客口座への不正操作（口座残高の毀損）の継続</li>
+              <li>本サービスに接続した顧客PCの情報の不正公開と、ランサムウェア攻撃の実行</li>
+              <li>GMOのシステムや運用体制に関する情報の不正公開</li>
+            </ul>
+          </li>
+          <li>GMOは要求に応じない方針。攻撃者が公開する情報には虚偽が含まれうると注意喚起。</li>
+        </ul>
+      </div>
+      <div class="item">
+        <h3>対応・補償</h3>
+        <ul>
+          <li>通信記録等を警察（サイバー犯罪対策部門）に提出し刑事事件として捜査を要請。主要取引所・証券会社に本サービス経由のアクセス遮断と全セッション強制切断を要請。</li>
+          <li>政府に、10月施行の能動的サイバー防御の<q>発動第1号</q>として攻撃者インフラへの対処を具申。</li>
+          <li>不正取引と認めた取引による実現損失（差損・手数料）を補償。市場変動の損失、逸失利益、間接損害は対象外。取引事業者の返金分は差し引き。申請方法は11/6までに案内。</li>
+          <li>全利用者に一律5,000円の見舞金。現行基盤は再開せず、独立基盤の代替サービスを6か月無償で提供。</li>
+        </ul>
+        <p class="src">出典：<a href="https://www.onamae.com/news/article/11584/">第1報</a>／<a href="https://group.gmo/info/alert/20261022/">第2報</a>／<a href="https://group.gmo/info/alert/20261023/">第3報</a>／<a href="https://group.gmo/info/alert/20261024/">第4報</a>／<a href="https://internet.gmo/news/article/249/">第4報（GMOインターネット）</a></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tier B">
+    <div class="tier-head"><span class="badge">B</span><p>ITmedia、Impress Watch、TBS/JNN、読売、朝日、The Next Web、Finance Magnates、FX各社の告知</p></div>
+    <div class="items">
+      <div class="item">
+        <h3>利用者の金銭被害</h3>
+        <ul>
+          <li>神奈川県の男性：10/21に約2秒で400万円超の損失、その後を含め600万円超（朝日新聞、piyolog経由）。</li>
+          <li>愛知県の女性：10/22未明から意図しない取引が繰り返され、430万円余りがほぼなくなった（同上）。</li>
+          <li>Xでは「55万円」「600万円」「230万円」の損失報告（ITmedia、投稿は未検証）。</li>
+          <li>GMOは被害の総額・件数を公表していない（ITmedia）。</li>
+        </ul>
+        <p class="src"><a href="https://www.itmedia.co.jp/news/article/2610/23/2000002532/">ITmedia</a>／<a href="https://www.watch.impress.co.jp/docs/news/2150663.html">Impress Watch</a>／<a href="https://news.yahoo.co.jp/articles/4957137f41f99f0546d523493cf87798aa6fdf15">TBS NEWS DIG</a>／<a href="https://news.infoseek.co.jp/article/yomiuri_20261023_gyt1t00316/">読売新聞</a></p>
+      </div>
+      <div class="item">
+        <h3>FX事業者・行政の動き</h3>
+        <ul>
+          <li>OANDA証券：同サービスでMT4/MT5を使う顧客のログイン情報が閲覧された可能性。出金を一時保留してセキュリティ確認。</li>
+          <li>AvaTrade Japan：外部VPS経由で第三者が顧客口座にログインし不正取引したと発表。</li>
+          <li>外為ファイネスト：他社サービスから漏えいしたとみられるID・パスワードで不正ログイン、該当口座を制限（本件との関連は未確定）。</li>
+          <li>AXIORY、Titan FX、IronFX、Dukascopy Japan、XMTradingなども注意喚起。自社システムの侵害は否定。</li>
+          <li>金融庁が10/22、金融先物取引業協会経由でFX事業者に注意喚起と監視を要請（日経・朝日、piyolog経由）。</li>
+          <li>能動的サイバー防御：GMOは法定の重要インフラ事業者ではなく、10/24時点で政府の判断は報じられていない（The Next Web）。</li>
+        </ul>
+        <p class="src"><a href="https://www.tradingview.com/news/financemagnates:8431343eb094b:0-oanda-japan-holds-withdrawals-after-hack-at-server-host-used-by-fx-traders/">Finance Magnates</a>／<a href="https://thenextweb.com/news/gmo-asks-japan-to-use-new-cyber-defence-powers-after-hack">The Next Web</a>／<a href="https://internet.watch.impress.co.jp/docs/news/2149829.html">INTERNET Watch</a></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tier C">
+    <div class="tier-head"><span class="badge">C</span><p>piyolog、セキュリティ対策Lab、MyForex、coki、アゴラ</p></div>
+    <div class="items">
+      <div class="item">
+        <h3>整理・分析</h3>
+        <ul>
+          <li>piyolog：公式発表、報道、FX各社の告知を時系列で整理。「Hacking Team」名義のメールと、GMOが公表した金銭要求の関係は不明と注記。</li>
+          <li>セキュリティ対策Lab：MT4/MT5の認証情報に加え、ブラウザ保存のID・パスワードや業務アプリの資格情報も確認対象になると整理。</li>
+          <li>MyForex：被害口座のMT4/MT5取引履歴に<code>DEMO_FAST_LOSS</code>という取引コメントが残るケースが複数あると報告。残高を短時間で減らすロジックが実行されたとみる。利用者の残高を減らしても攻撃者に直接の利益はないため、GMOを脅迫する手段だったという見方。</li>
+          <li>coki：専門家の見立てとして「保存していた口座番号やパスワードを盗まれ、FX口座に入られて勝手に取引された」という流れを紹介。規約上の賠償上限（利用料1か月分）は消費者契約法で争う余地があると論評。</li>
+        </ul>
+        <p class="src"><a href="https://piyolog.hatenadiary.jp/entry/2026/10/23/014520">piyolog</a>／<a href="https://rocket-boys.co.jp/security-measures-lab/onamae_desktop_cloud_26739_servers_unauthorized_access_provider_impacts/">セキュリティ対策Lab</a>／<a href="https://myforex.com/ja/news/myf26102202.html">MyForex</a>／<a href="https://coki.jp/article/column/96178/">coki</a>／<a href="https://agora-web.jp/archives/261024030500.html">アゴラ</a></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tier D">
+    <div class="tier-head"><span class="badge">D</span><p>X投稿、まとめサイト、AI生成記事</p></div>
+    <div class="items">
+      <div class="item">
+        <h3>SNSで出回っている情報</h3>
+        <ul>
+          <li>利用者が「ハッキングチーム」から脅迫メールを受け取ったとする投稿が10/22に相次ぐ。<q>私の破綻させられた口座の番号、被害額一致しました</q>という投稿も。メール本文は画像のみで、全文は確認できない。</li>
+          <li><q>破壊はまだ進行中で解約した人にも及んでいる パスを変えても無駄</q>といった投稿（伝聞）。</li>
+          <li>「66億円相当の口座を破壊した」とハッカーが主張しているとの見出し（まとめサイト）。元のメールや攻撃者の投稿までたどれない。</li>
+          <li>ネット上では文面が機械翻訳調という指摘と、日本語が自然という指摘の両方があり、攻撃者の国籍などは根拠のない推測にとどまる。</li>
+        </ul>
+        <p class="src"><a href="https://ideal2ch.livedoor.biz/archives/97974719.html">理想ちゃんねる</a>／<a href="https://itsoku.org/archives/63564363.html">IT速報</a>／<a href="https://matomedane.jp/ponzu/page/215443">まとめダネ！</a>／<a href="https://jin115.com/archives/52461264.html">オレ的ゲーム速報</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="s-claims">
+  <h2 id="s-claims">ハッカーが主張する攻撃の手法</h2>
+  <div class="callout">
+    <strong>前提</strong>
+    <p>攻撃者は侵入の技術的な方法（脆弱性、侵入口、使ったマルウェア）をどこにも具体的に書いていません。以下は脅迫文や公表された脅迫内容から読み取れる「何をしたと言っているか」の整理です。どれも未検証です。</p>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>主張</th><th>内容</th><th>出所</th><th>信用度</th></tr></thead>
+      <tbody>
+        <tr><td>侵入範囲</td><td><q>貴社の『お名前.com デスクトップVPS』ネットワークに侵入したハッキングチーム</q>と名乗る。個々の利用者ではなく、サービス基盤そのものに入ったと主張。GMOが「システムにセキュリティ上の問題」と認めた点とは整合する</td><td>脅迫文（coki掲載）</td><td><span class="badge D">D</span></td></tr>
+        <tr><td>認証情報の窃取</td><td>VPS上のMT4/MT5や証券・FX口座のログイン情報を取得。GMOも取得・持ち出しを認めている</td><td>GMO公表の脅迫内容、脅迫文</td><td><span class="badge A">A</span>（事実部分）</td></tr>
+        <tr><td>口座残高の「破壊」</td><td>盗んだ情報で顧客の取引口座にログインし、損失が出る取引を繰り返して残高を消す。<q>合計2800万ドル相当（全残高の10％）の資金を消滅させました</q>と主張。利用者の資金を奪うのではなく、損失を出させてGMOへの圧力に使う形</td><td>脅迫文（coki掲載）</td><td><span class="badge D">D</span></td></tr>
+        <tr><td>被害額「66億円」</td><td>24時間で66億円相当の口座を破壊したとする主張。2,800万ドル（約40億円）とも合わず、出所をたどれない</td><td>X投稿→まとめサイト</td><td><span class="badge D">D</span></td></tr>
+        <tr><td>攻撃対象の拡大</td><td>国内外70社超の証券・FX会社の口座で不正操作を続けると脅迫。パスワードを変えても無駄、解約者にも及ぶとの伝聞あり</td><td>GMO第4報（脅迫内容として）、X投稿</td><td><span class="badge A">A</span>（脅迫の存在）</td></tr>
+        <tr><td>接続元PCへの攻撃</td><td>本サービスに接続した利用者PCの情報を公開し、ランサムウェア攻撃を行うと脅迫。リモートデスクトップで接続していた手元のPCまで狙えると示唆している</td><td>GMO第4報（脅迫内容として）</td><td><span class="badge A">A</span>（脅迫の存在）</td></tr>
+        <tr><td>GMO内部情報の暴露</td><td>GMOのシステム・運用体制の情報を公開すると脅迫。顧客の機密データをすべて公開するとも主張</td><td>GMO第4報、脅迫文</td><td><span class="badge A">A</span>／<span class="badge D">D</span></td></tr>
+        <tr><td>事前通告と動機</td><td>GMOにハッキングの事実を伝え続けたが無視されたので実行した、と主張。GMOはいつ要求を受けたか公表していない</td><td>被害者が公開した脅迫メールの一部（X）</td><td><span class="badge D">D</span></td></tr>
+        <tr><td>被害者への「訴訟支援」</td><td>顧客に非はないとして、GMOを訴える被害者に裁判用の証拠一式を配ると主張。利用者を味方につけ、GMOへの圧力を強める狙いとみられる</td><td>X投稿（受信メールの紹介）</td><td><span class="badge D">D</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">補足：MyForexが報告した取引コメント<code>DEMO_FAST_LOSS</code>は、攻撃者の主張ではなく被害口座に残った痕跡です。自動化された損失取引ツールが使われた可能性を示しますが、GMOや捜査機関は確認していません。</p>
+</section>
+
+<section aria-labelledby="s-gaps">
+  <h2 id="s-gaps">わかっていないこと</h2>
+  <ul class="keypoints">
+    <li>侵入経路と脆弱性の中身（管理基盤なのか、個々の仮想サーバーなのか）</li>
+    <li>実際に侵害されたサーバー数、不正取引の件数、被害総額</li>
+    <li>「Hacking Team」名義のメールの送り主と、GMOに金銭を要求した者が同一か</li>
+    <li>攻撃者がGMOに最初に接触した時期（10/19より前かどうか）</li>
+    <li>政府が能動的サイバー防御の要請にどう応じるか</li>
+  </ul>
+</section>
+
+<section aria-labelledby="s-src">
+  <h2 id="s-src">主な情報源</h2>
+  <ol class="sources">
+    <li><a href="https://group.gmo/info/alert/20261024/">GMOインターネットグループ 第4報（10/24）</a></li>
+    <li><a href="https://group.gmo/info/alert/20261023/">同 第3報（10/23）</a>／<a href="https://group.gmo/info/alert/20261022/">第2報（10/22）</a>／<a href="https://www.onamae.com/news/article/11584/">第1報（10/21）</a></li>
+    <li><a href="https://www.itmedia.co.jp/news/article/2610/23/2000002532/">ITmedia NEWS（10/23）</a></li>
+    <li><a href="https://news.yahoo.co.jp/articles/4518997c83da9cf8a2a4f0f895f34e09be75e9c9">ITmedia NEWS 補償報道（Yahoo!ニュース）</a></li>
+    <li><a href="https://www.watch.impress.co.jp/docs/news/2150663.html">Impress Watch</a>／<a href="https://internet.watch.impress.co.jp/docs/news/2149829.html">INTERNET Watch</a></li>
+    <li><a href="https://thenextweb.com/news/gmo-asks-japan-to-use-new-cyber-defence-powers-after-hack">The Next Web</a>／<a href="https://www.tradingview.com/news/financemagnates:8431343eb094b:0-oanda-japan-holds-withdrawals-after-hack-at-server-host-used-by-fx-traders/">Finance Magnates（TradingView転載）</a></li>
+    <li><a href="https://piyolog.hatenadiary.jp/entry/2026/10/23/014520">piyolog</a>／<a href="https://myforex.com/ja/news/myf26102202.html">MyForex</a>／<a href="https://coki.jp/article/column/96178/">coki</a>／<a href="https://rocket-boys.co.jp/security-measures-lab/onamae_desktop_cloud_26739_servers_unauthorized_access_provider_impacts/">セキュリティ対策Lab</a>／<a href="https://agora-web.jp/archives/261024030500.html">アゴラ</a></li>
+  </ol>
+  <p class="note">2026年10月24日までの公開情報に基づきます。朝日新聞・日経の記事はpiyolog経由の引用で、原文は確認していません。</p>
+</section>
+
+</div>
