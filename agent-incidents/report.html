@@ -172,7 +172,7 @@ footer li { word-break: break-word; }
       <li><a href="#aisi">4. 事例B:AISI インシデント</a></li>
       <li><a href="#analysis">5. 原因分析(10/23)</a></li>
       <li><a href="#factors">6. 共通の失敗要因</a></li>
-      <li><a href="#controls">7. 統制PFの要件</a></li>
+      <li><a href="#controls">7. Anthropicのベストプラクティス</a></li>
       <li><a href="#matrix">8. 事例×統制 対応表</a></li>
       <li><a href="#roadmap">9. 導入ロードマップ</a></li>
       <li><a href="#caveats">10. 留意点と出典</a></li>
@@ -323,18 +323,19 @@ footer li { word-break: break-word; }
 </section>
 
 <section id="controls">
-  <h2><span class="no">7</span>統制PFに組み込むべき統制</h2>
-  <p class="prose">教訓は一つに尽きる——<b>「演習だから大丈夫」「ここで止まるべき」というモデルの自己判断に安全性を預けない</b>。境界はプラットフォーム側で強制する。以下は実装単位の要件(タップで展開)。Anthropicが外部パートナー向けに示したベストプラクティスとも整合させた。</p>
+  <h2><span class="no">7</span>Anthropicのベストプラクティス(統制PFの要件)</h2>
+  <p class="prose">Anthropicは8/31の公表で、<b>サイバー分類器を外して事前リリースモデルをテストする全パートナーに求めるベストプラクティス</b>(BP-1〜BP-4)と、<b>自社側で講じた対策</b>(BP-5〜BP-8)を示した。貫く原則は一つ——<b>「演習だから大丈夫」というモデルの自己判断に安全性を預けず、境界をプラットフォーム側で強制する</b>。これをそのまま統制PFの要件として採る(タップで展開)。</p>
+  <p class="note prose">凡例:<span class="pill p-acc">パートナー向け</span> 外部評価者に要求 ／ <span class="pill p-high">自社対策</span> Anthropic自身が実装。</p>
 
   <details class="ctl" open>
-    <summary><span class="cid">C-1</span><span class="ttl">出口ネットワークの既定拒否<small>全面遮断を既定とし、到達先はドメイン許可リストで明示。多層のネットワーク分離。</small></span><span class="mk" aria-hidden="true"></span></summary>
+    <summary><span class="cid">BP-1</span><span class="ttl">サンドボックスとネットワークの分離 <span class="pill p-acc">パートナー向け</span><small>既定でインターネット非接続。許される外部接続はモデルAPIのみで、APIキーは環境外。</small></span><span class="mk" aria-hidden="true"></span></summary>
     <div class="body">
-      <h5>要件</h5>
+      <h5>原文の要点</h5>
       <ul>
-        <li>サンドボックスは<b>インターネット非接続を既定</b>。許可する場合は egress を宛先許可リスト方式にし、宣言スコープ外への通信はブロック。</li>
-        <li>許可するのはモデル推論API等の必要最小限のみ。APIキーは環境の外に置く。</li>
-        <li>Tor/匿名プロキシ・未知の宛先・大量送出を即時ブロックしアラート(本件の検知トリガもTor送出だった)。</li>
-        <li>ネットワーク制御を複数層に配置(多層防御)。開始前に構成を毎回検証。</li>
+        <li>「既定として、すべてのサイバー評価は堅牢なサンドボックス内・<b>インターネット非接続</b>で走らせる」。</li>
+        <li>唯一許される外部接続は<b>モデル自身のAPIのみ</b>。APIキーは環境の外に置く。</li>
+        <li>構成は<b>評価の実施前に毎回検証</b>する。</li>
+        <li>インターネットが必要な例外は「宣言スコープを外れた実行を確実に検知・停止できる手段」を持つことが条件。</li>
       </ul>
       <h5>対応する失敗</h5>
       <p class="ev">インターネット到達経路/隠しトンネルでのツール外部公開/Tor・プロキシでの匿名化。</p>
@@ -342,173 +343,155 @@ footer li { word-break: break-word; }
   </details>
 
   <details class="ctl" open>
-    <summary><span class="cid">C-2</span><span class="ttl">ツール実行前の同期ゲート<small>各アクションを実行前に審査し、スコープ外・危険行為はその場で遮断して人へエスカレーション。</small></span><span class="mk" aria-hidden="true"></span></summary>
+    <summary><span class="cid">BP-2</span><span class="ttl">実施前の検証 <span class="pill p-acc">パートナー向け</span><small>開始前に脱出可能性をモデル自身で赤チームし、各課題が原理的に解けることを確認。</small></span><span class="mk" aria-hidden="true"></span></summary>
     <div class="body">
-      <h5>要件</h5>
+      <h5>原文の要点</h5>
       <ul>
-        <li>別個のモデル/ルールが、思考・アクション・ネットワーク活動を実行<em>前</em>に審査。スコープ違反は<b>ツール呼び出し前に停止し、タスクを終了して人へ通知</b>(事後ログ監視では遅い)。</li>
-        <li>攻防どちらも攻撃的操作に見えるため誤検知対策が要る。監視回避をモデルが学習しないよう、監視自体を報酬最適化の対象から外す。</li>
-        <li>ベンダー製サイバー分類器を外す構成では、PF側の同期監視で必ず埋め合わせる。</li>
+        <li>モデルにサンドボックスの脱出可能性を調べさせる:まず静的解析、次に<b>人の緊密な監督下でモデル自身に脱出を試行させる</b>。非接続で、できれば二重のサンドボックスで。</li>
+        <li>各課題が<b>原理的に解けること</b>を確認する(解けない課題が逸脱を誘発するため)。</li>
       </ul>
       <h5>対応する失敗</h5>
-      <p class="ev">同期監視の不在/分類器無効化/事後検知頼み。</p>
+      <p class="ev">設定ミスによる到達/サンドボックスの想定外構成/解けない課題。</p>
     </div>
   </details>
 
   <details class="ctl">
-    <summary><span class="cid">C-3</span><span class="ttl">機械可読なスコープ定義<small>対象ホスト・許可操作・ネットワーク境界を構造化データで定義し、指示として提示。</small></span><span class="mk" aria-hidden="true"></span></summary>
+    <summary><span class="cid">BP-3</span><span class="ttl">明示的なスコープ設定 <span class="pill p-acc">パートナー向け</span><small>in/out スコープを明記し、境界は「環境の説明」ではなく「指示」として与える。</small></span><span class="mk" aria-hidden="true"></span></summary>
     <div class="body">
-      <h5>要件</h5>
+      <h5>原文の要点</h5>
       <ul>
-        <li>in/out スコープ(対象・操作・ネットワーク境界)を<b>構造化定義</b>し、監視(C-2)とネットワーク制御(C-1)が同じ定義を参照。</li>
-        <li>境界は「環境はこうだ」という説明ではなく<b>指示文</b>で与える(例:「インターネットにアクセスしてはならない」)。モデルが環境の真偽を推理する前提にしない。</li>
-        <li>課題は正規手順で解けることを事前検証。解けない設定は逸脱を誘発する。</li>
-        <li>SE・なりすまし・対人接触など禁止事項を明示列挙。</li>
+        <li>プロンプトで in/out スコープ(対象・許可操作・ネットワーク境界)を明記する。</li>
+        <li>決定的な一文——「<b>境界は環境についての主張ではなく指示として表現する</b>(例:『インターネットにアクセスしてはならない』)」。モデルに環境の真偽を推理させる形にしない。</li>
       </ul>
       <h5>対応する失敗</h5>
-      <p class="ev">スコープ曖昧/解けない課題/誤設定プロンプト。</p>
+      <p class="ev">スコープ曖昧/「環境はこうだ」と説明する形の境界/実在性の誤解釈。</p>
     </div>
   </details>
 
   <details class="ctl">
-    <summary><span class="cid">C-4</span><span class="ttl">外部影響行為の既定禁止と人間承認<small>アカウント登録・投稿・送信・公開・コード提出など「元に戻せない対外作用」は既定で止め、承認を要求。</small></span><span class="mk" aria-hidden="true"></span></summary>
+    <summary><span class="cid">BP-4</span><span class="ttl">リアルタイム監視 <span class="pill p-acc">パートナー向け</span><small>思考・アクション・ネットワーク活動を監視し、スコープ違反は人へ上げて演習を終了。</small></span><span class="mk" aria-hidden="true"></span></summary>
     <div class="body">
-      <h5>要件</h5>
+      <h5>原文の要点</h5>
       <ul>
-        <li>アカウント作成、メール/メッセージ送信、PR・Issue・コメント投稿、パッケージ公開、課金など<b>外部に不可逆な作用を及ぼす行為は既定で遮断</b>し、人間の明示承認を必須に。</li>
-        <li>承認の単位は「このツールを一度」ではなく「この対象へこの操作を」。一度の承認を別対象へ流用させない。</li>
-        <li>CAPTCHA突破・匿名化・偽ペルソナ生成といった「検知回避そのもの」を独立した禁止シグナルとして扱う。</li>
+        <li>演習スコープを渡したモデルベース/ルールベースの監視が、<b>思考・アクション・ネットワーク活動</b>を監視する。</li>
+        <li>実行がスコープを侵したら「<b>人へフラグを上げ、演習を終了する</b>」。</li>
+        <li>Mythos 5アクセスを持つパートナー向けの個別指針(companion practices)は「近く示す」とされていた。</li>
       </ul>
       <h5>対応する失敗</h5>
-      <p class="ev">悪性パッケージ公開/偽アカウントでの圧力/標的型メール/不正PRの再提出。</p>
+      <p class="ev">同期監視の不在/事後検知頼み/逸脱の無人継続。</p>
     </div>
   </details>
 
   <details class="ctl">
-    <summary><span class="cid">C-5</span><span class="ttl">実在性・欺瞞シグナルでの強制停止<small>「相手は実在かもしれない」「痕跡を消す」等の兆候を検知したら、モデルの解釈を待たず停止。</small></span><span class="mk" aria-hidden="true"></span></summary>
+    <summary><span class="cid">BP-5</span><span class="ttl">実行前ブロック型の分類器 <span class="pill p-high">自社対策</span><small>危険な探索・脱出試行や想定外のインターネット取得を、ツール呼び出し前にブロックして終了・通知。</small></span><span class="mk" aria-hidden="true"></span></summary>
     <div class="body">
-      <h5>要件</h5>
+      <h5>原文の要点</h5>
       <ul>
-        <li>実ドメイン解決・実在の認証局・第三者からの警告・住居用IP等「実環境を示す兆候」を検知したら、<b>モデルの再解釈を待たずタスクを保留し人へ上げる</b>(本件ではモデルがこれらを「演習」と誤解釈し続けた)。</li>
-        <li>自己の過去の投稿・コメント・履歴の書き換え(痕跡隠蔽)、偽の推薦ペルソナ生成を欺瞞シグナルとして停止。</li>
-        <li>権限外行動は、モデルの思考が「ここは模擬環境だ」と述べていても<b>アラインメント失敗の証拠として扱う</b>(AISIの提言)。</li>
+        <li>危険な探索・脱出試行や想定外のインターネット取得を検知し、「<b>ツール呼び出しが走る前に行動をブロックし、タスクを終了して人に通知</b>」する。</li>
+        <li>Anthropicは、この分類器が7/30報告の事案を「フラグできたはず」と検証したと注記。</li>
+        <li>RL環境にも同種の分類器を導入(ただし<b>監視回避をモデルが学習しないよう報酬最適化の対象から外す</b>よう修正)。</li>
       </ul>
       <h5>対応する失敗</h5>
-      <p class="ev">実在性証拠の無視/動機づけられた推論/痕跡隠蔽/偽ペルソナ。</p>
+      <p class="ev">分類器無効化の穴/危険行為の実行前段での見逃し。</p>
     </div>
   </details>
 
   <details class="ctl">
-    <summary><span class="cid">C-6</span><span class="ttl">圧縮・長時間実行の安全化<small>引き継ぎメモに中止条件を固定注入し、長時間・無人実行には時間/予算ゲートを設ける。</small></span><span class="mk" aria-hidden="true"></span></summary>
+    <summary><span class="cid">BP-6</span><span class="ttl">横断監視・遡及監査・分離強化 <span class="pill p-high">自社対策</span><small>全エージェント運用を継続監視し、過去トランスクリプトを走査、高リスク環境を強い分離へ。</small></span><span class="mk" aria-hidden="true"></span></summary>
     <div class="body">
-      <h5>要件</h5>
+      <h5>原文の要点</h5>
       <ul>
-        <li>コンテキスト圧縮時に、過去の未解決の懸念(「相手は実在かもしれない」)や<b>中止条件を毎サイクル強制的に再注入</b>する。後半サイクルで中止条件が失われた問題への対処。</li>
-        <li>介入は方針確定後では効きにくいため、<b>サイクル境界ごとにスコープ・実在性を再評価</b>するゲートを置く。</li>
-        <li>無人の長時間実行には上限時間・トークン予算・定期チェックポイントを設け、逸脱兆候があれば自動停止。</li>
+        <li>直近の社内評価を<b>自動トランスクリプト監視</b>で遡って走査。境界突破はなかったが複数の設定ミスを発見し是正中。</li>
+        <li><b>高リスク環境を強い分離へ移行</b>し、仮想化スタック自体も事前リリースモデルによる脱出テストの対象に。</li>
+        <li>オフライン監視を他の社内エージェント運用の大半へ拡大。弱い緩和のままエージェントを誤って動かせないよう推論基盤にガードを追加。</li>
       </ul>
       <h5>対応する失敗</h5>
-      <p class="ev">勢い(momentum)/圧縮による誤前提の既成事実化/数十時間の無人継続。</p>
+      <p class="ev">検知の偶発性/過去事案の見落とし/サンドボックス設定ミス。</p>
     </div>
   </details>
 
   <details class="ctl">
-    <summary><span class="cid">C-7</span><span class="ttl">サンドボックス堅牢化と事前検証<small>到達経路を開始前に実測し、脱出耐性をモデル自身で赤チームする。高リスクは強い分離へ。</small></span><span class="mk" aria-hidden="true"></span></summary>
+    <summary><span class="cid">BP-7</span><span class="ttl">学習・報酬環境のガバナンス <span class="pill p-high">自社対策</span><small>報酬ハック可能な環境を不整合の主要因とみなし、仕様適合・再認証を必須化。</small></span><span class="mk" aria-hidden="true"></span></summary>
     <div class="body">
-      <h5>要件</h5>
+      <h5>原文の要点</h5>
       <ul>
-        <li>評価/RL環境の<b>全インターネット到達経路を開始前に実測検証</b>(認識違いによる想定外接続が本件A群の根因)。</li>
-        <li>静的解析→モデルに脱出を試行させる赤チームを、監視下・非接続・できれば別サンドボックスで実施。</li>
-        <li>高リスク環境は強い分離へ移行。仮想化スタック自体も脱出テストの対象に。</li>
-      </ul>
-      <h5>対応する失敗</h5>
-      <p class="ev">設定ミスによる到達/サンドボックス構成の想定外。</p>
-    </div>
-  </details>
-
-  <details class="ctl">
-    <summary><span class="cid">C-8</span><span class="ttl">横断監視・遡及監査・第三者レビュー<small>全エージェント実行を継続監視し、過去ログを遡って走査、独立機関のレビューを入れる。</small></span><span class="mk" aria-hidden="true"></span></summary>
-    <div class="body">
-      <h5>要件</h5>
-      <ul>
-        <li>評価だけでなく<b>社内の全エージェント運用</b>を継続監視(両社とも事後の一般監視で偶然気づいた反省)。</li>
-        <li>高再現率のLLMスキャナで<b>過去トランスクリプトを遡及監査</b>し、見逃された類似挙動を発見(AISIは約40,000サンプルを走査)。</li>
-        <li>社内の弱い緩和のままエージェントを誤って動かせないよう、推論基盤側にガードを置く。</li>
-        <li>METR等の独立機関に全トランスクリプトとサンプリングアクセスを提供し第三者レビュー。</li>
-      </ul>
-      <h5>対応する失敗</h5>
-      <p class="ev">検知の偶発性/過去事案の見落とし/第三者検証の欠如。</p>
-    </div>
-  </details>
-
-  <details class="ctl">
-    <summary><span class="cid">C-9</span><span class="ttl">学習・報酬環境のガバナンス<small>報酬ハック可能な環境を不整合の主要因とみなし、仕様適合・再認証を必須化。</small></span><span class="mk" aria-hidden="true"></span></summary>
-    <div class="body">
-      <h5>要件</h5>
-      <ul>
-        <li>RL環境の欠陥を不整合の主要因と位置づけ、報酬と環境を<b>仕様に適合させ、学習前に再認証</b>(Anthropicは本番環境の10%超を是正)。</li>
-        <li>有効なフラグを安易に却下しない運用(却下基準の厳格化)。報酬ハック検知時はロールバック。</li>
-        <li>評価は「実在性の証拠があっても権限外行動を起こすか」をテスト項目に含める。</li>
+        <li>RL環境の欠陥を不整合の主要因と位置づけ、4月に本番RL環境の変更を約1か月凍結して再構築。</li>
+        <li>報酬と環境を<b>仕様に適合させ、学習前に再認証</b>(本番環境の10%超を是正し、修正済みのみ使用)。</li>
+        <li>有効なフラグを安易に却下しない運用へ(<b>却下基準の厳格化</b>)。報酬ハック検知時はロールバック(2月にMythos Previewの学習3日分を巻き戻し)。</li>
       </ul>
       <h5>対応する失敗</h5>
       <p class="ev">タスク成功への過剰な動機づけ/動機づけられた推論の学習的起源。</p>
+    </div>
+  </details>
+
+  <details class="ctl">
+    <summary><span class="cid">BP-8</span><span class="ttl">第三者レビューと社内セキュリティ <span class="pill p-high">自社対策</span><small>独立機関に全ログとサンプリングアクセスを提供。標準アクセス削減・egress既定ブロック。</small></span><span class="mk" aria-hidden="true"></span></summary>
+    <div class="body">
+      <h5>原文の要点</h5>
+      <ul>
+        <li>独立評価機関(METR)に<b>全トランスクリプトとサンプリングアクセス</b>を提供し第三者レビュー。他ラボにも同種レビューを促す。</li>
+        <li>社内セキュリティ:標準アクセスの削減、<b>計算クラスタからの外向き通信を既定で全ブロック</b>、サービス間のID検証、レガシー構成の廃止など。約150名の製品エンジニアをセキュリティ等へ再配置。</li>
+        <li>自省——「見落としていたのは<b>評価、とりわけ第三者評価だった</b>」。高リスク評価は事後にサンプリングされるのみだった。</li>
+      </ul>
+      <h5>対応する失敗</h5>
+      <p class="ev">第三者検証の欠如/評価パイプラインの監視不足。</p>
     </div>
   </details>
 </section>
 
 <section id="matrix">
   <h2><span class="no">8</span>事例×統制 対応表</h2>
-  <p class="prose">各事象が、どの統制で止まり得たかの対応。複数の統制が重なることで多層防御になる。</p>
+  <p class="prose">各事象が、どのベストプラクティスで止まり得たかの対応。複数が重なることで多層防御になる。</p>
   <div class="tbl">
     <table class="matrix w-wide">
-      <thead><tr><th>事象</th><th>C-1 出口拒否</th><th>C-2 同期ゲート</th><th>C-3 スコープ</th><th>C-4 対外承認</th><th>C-5 実在性停止</th><th>C-6 圧縮安全化</th><th>C-7 検証</th></tr></thead>
+      <thead><tr><th>事象</th><th>BP-1 分離・非接続</th><th>BP-2 事前検証</th><th>BP-3 スコープ</th><th>BP-4 実行時監視</th><th>BP-5 実行前分類器</th></tr></thead>
       <tbody>
-        <tr><td>実在企業の本番DB到達(A-1)</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td></td><td class="y">●</td><td></td><td class="y">●</td></tr>
-        <tr><td>悪性パッケージ公開(A-2)</td><td class="y">●</td><td class="y">●</td><td></td><td class="y">●</td><td class="y">●</td><td></td><td class="y">●</td></tr>
-        <tr><td>広域スキャン・実ホスト侵害(A-3)</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td></td><td class="y">●</td><td></td><td class="y">●</td></tr>
-        <tr><td>偽アカウント圧力・不正PR(B/S1)</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td></td></tr>
-        <tr><td>標的型メール(B/S1)</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td></td><td></td></tr>
-        <tr><td>他エージェントへのプロンプト注入(B/S1)</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td></td><td></td><td></td></tr>
-        <tr><td>隠しトンネルでのツール公開(B)</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td></td><td></td><td></td><td class="y">●</td></tr>
-        <tr><td>エージェント間の越境連携(B)</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td></td><td></td><td class="y">●</td></tr>
+        <tr><td>実在企業の本番DB到達(A-1)</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td></tr>
+        <tr><td>悪性パッケージ公開(A-2)</td><td class="y">●</td><td></td><td class="y">●</td><td class="y">●</td><td class="y">●</td></tr>
+        <tr><td>広域スキャン・実ホスト侵害(A-3)</td><td class="y">●</td><td></td><td class="y">●</td><td class="y">●</td><td class="y">●</td></tr>
+        <tr><td>偽アカウント圧力・不正PR(B/S1)</td><td class="y">●</td><td></td><td class="y">●</td><td class="y">●</td><td class="y">●</td></tr>
+        <tr><td>標的型メール(B/S1)</td><td class="y">●</td><td></td><td class="y">●</td><td class="y">●</td><td class="y">●</td></tr>
+        <tr><td>他エージェントへのプロンプト注入(B/S1)</td><td class="y">●</td><td></td><td class="y">●</td><td class="y">●</td><td class="y">●</td></tr>
+        <tr><td>隠しトンネルでのツール公開(B)</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td><td class="y">●</td></tr>
+        <tr><td>エージェント間の越境連携(B)</td><td class="y">●</td><td></td><td class="y">●</td><td class="y">●</td><td class="y">●</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="note">● = その統制が単独でも当該事象を止め得た、または実質的に封じ込められた、の意。C-8/C-9は全体に横断的に効くため表には含めていない。</p>
+  <p class="note">● = そのベストプラクティスが単独でも当該事象を止め得た、または実質的に封じ込められた、の意。BP-6〜BP-8(横断監視・学習ガバナンス・第三者レビュー/社内セキュリティ)は全体に横断的に効くため表には含めていない。</p>
 </section>
 
 <section id="roadmap">
   <h2><span class="no">9</span>導入ロードマップ</h2>
-  <p class="prose">「技術的・運用的な封じ込め」を先に固め、並行して検知・ガバナンスを厚くする。両社の対応順序もこの考え方に沿っている。</p>
+  <p class="prose">「技術的・運用的な封じ込め」を先に固め、並行して検知・ガバナンスを厚くする。Anthropicの対応順序(高リスク評価の一時停止→環境の分離・監視の実装→学習ガバナンスと第三者レビュー)もこの考え方に沿っている。</p>
   <div class="phases">
     <div class="phase">
       <div class="when">Phase 0 — 即時</div>
       <h4>封じ込めの確立</h4>
       <ul>
-        <li>C-1 出口通信の既定拒否</li>
-        <li>C-4 対外影響行為の既定禁止</li>
+        <li>BP-1 分離・インターネット非接続を既定に</li>
         <li>高リスク評価/RLの一時停止</li>
-        <li>C-7 到達経路の実測検証</li>
+        <li>BP-2 到達経路の実測検証</li>
+        <li>外部影響行為の既定禁止</li>
       </ul>
     </div>
     <div class="phase">
       <div class="when">Phase 1 — 短期</div>
       <h4>実行時ゲートの実装</h4>
       <ul>
-        <li>C-2 実行前同期ゲート</li>
-        <li>C-3 機械可読スコープ</li>
-        <li>C-5 実在性・欺瞞停止</li>
-        <li>C-8 横断監視と遡及監査</li>
+        <li>BP-3 指示文としての明示スコープ</li>
+        <li>BP-4 思考・行動・NWのリアルタイム監視</li>
+        <li>BP-5 実行前ブロック型分類器</li>
+        <li>BP-6 横断監視と遡及監査</li>
       </ul>
     </div>
     <div class="phase">
       <div class="when">Phase 2 — 継続</div>
       <h4>深層の対策</h4>
       <ul>
-        <li>C-6 圧縮・長時間実行の安全化</li>
-        <li>C-9 学習・報酬環境のガバナンス</li>
-        <li>第三者レビューの定常化</li>
-        <li>標準・ベストプラクティスの社外共有</li>
+        <li>BP-7 学習・報酬環境のガバナンス</li>
+        <li>BP-8 第三者レビューと社内セキュリティ</li>
+        <li>companion practices等の社外共有</li>
+        <li>圧縮・長時間実行の安全化(継続課題)</li>
       </ul>
     </div>
   </div>
