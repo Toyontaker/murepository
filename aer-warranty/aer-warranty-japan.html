@@ -1,0 +1,252 @@
+<title>Aer 国内保証の調査</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 1カラムの調査レポート。冒頭に結論、次に本国と国内の比較表、公式文言、事例、対処法の順。 */
+:root{
+  --bg:#f5f7f8; --surface:#ffffff; --fg:#1b2329; --muted:#5b6973; --line:#d8dfe3;
+  --accent:#0f6b73; --accent-soft:#e1f0f1;
+  --warn:#9a5a00; --warn-soft:#fbf0dd;
+  --ok:#2f6b2f; --ok-soft:#e5f2e3;
+  --no:#a12f2f; --no-soft:#f8e4e4;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12181c; --surface:#1a2227; --fg:#e4eaed; --muted:#9aa8b1; --line:#2c373e;
+  --accent:#5cc3cc; --accent-soft:#163236;
+  --warn:#e6b25a; --warn-soft:#352914;
+  --ok:#8fcf8a; --ok-soft:#1c3020;
+  --no:#ef8f8f; --no-soft:#3a1d1f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12181c; --surface:#1a2227; --fg:#e4eaed; --muted:#9aa8b1; --line:#2c373e;
+  --accent:#5cc3cc; --accent-soft:#163236;
+  --warn:#e6b25a; --warn-soft:#352914;
+  --ok:#8fcf8a; --ok-soft:#1c3020;
+  --no:#ef8f8f; --no-soft:#3a1d1f; color-scheme:dark}
+
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15.5px;line-height:1.85;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 64px}
+main{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1,h2,h3{text-wrap:balance;line-height:1.35;margin:0}
+h1{font-size:clamp(1.7rem,4.2vw,2.35rem);font-weight:900;letter-spacing:.01em}
+h2{font-size:1.32rem;font-weight:700;padding-bottom:8px;border-bottom:2px solid var(--fg)}
+h3{font-size:1.05rem;font-weight:700}
+p{margin:0}
+a{color:var(--accent);text-underline-offset:3px;word-break:break-all}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+section{display:flex;flex-direction:column;gap:16px}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+header{display:flex;flex-direction:column;gap:10px}
+.lede{color:var(--muted);max-width:62ch}
+
+.verdict{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--accent);padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.verdict strong{font-weight:700}
+.verdict ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+
+.table-wrap{overflow-x:auto;border:1px solid var(--line);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:.93rem}
+th,td{text-align:left;vertical-align:top;padding:12px 14px;border-bottom:1px solid var(--line)}
+thead th{font-size:.8rem;letter-spacing:.06em;color:var(--muted);font-weight:500;background:var(--bg)}
+tbody th{font-weight:700;white-space:nowrap;width:8.5em}
+tbody tr:last-child>*{border-bottom:none}
+
+.pill{display:inline-block;font-size:.76rem;font-weight:700;padding:1px 9px;border-radius:999px;margin-right:6px;white-space:nowrap;vertical-align:1px}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.no{background:var(--no-soft);color:var(--no)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+
+blockquote{margin:0;padding:12px 16px;background:var(--surface);border:1px solid var(--line);font-size:.94rem}
+blockquote cite{display:block;margin-top:6px;font-style:normal;font-family:var(--f-mono);font-size:.76rem;color:var(--muted)}
+.quotes{display:flex;flex-direction:column;gap:10px}
+
+.cases{display:grid;grid-template-columns:1fr;gap:12px}
+.case{background:var(--surface);border:1px solid var(--line);padding:16px 18px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.case .meta{font-family:var(--f-mono);font-size:.76rem;color:var(--muted)}
+.case p{font-size:.94rem}
+
+ol.steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:10px}
+ol.steps li::marker{font-weight:700;color:var(--accent)}
+
+.tpl{background:var(--surface);border:1px dashed var(--line);padding:14px 16px;font-size:.92rem;white-space:pre-wrap;font-family:var(--f-body)}
+.copy-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button{font:inherit;font-size:.85rem;padding:6px 14px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);cursor:pointer}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.contact{font-family:var(--f-mono);font-size:.88rem;user-select:all}
+
+.note{font-size:.86rem;color:var(--muted)}
+.sources ol{margin:0;padding-left:1.4em;font-size:.86rem;display:flex;flex-direction:column;gap:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<main>
+<header>
+  <span class="eyebrow">調査メモ · 2026年10月26日時点</span>
+  <h1>Aerのバッグ、日本で買ったら保証はどうなる？</h1>
+  <p class="lede">米国Aer（aersf.com）は永久保証を掲げていますが、日本公式ストアには保証期間も保証内容も書かれていません。公式サイトの文言と、ブログ・動画・SNSの事例を集めて整理しました。</p>
+</header>
+
+<section class="verdict" aria-labelledby="v">
+  <h2 id="v" style="border:none;padding:0">結論</h2>
+  <p>ご認識のとおりです。<strong>日本の正規品について「保証期間」「無償修理の範囲」を定めた公式の文書は見つかりませんでした。</strong>日本公式サイトに書かれているのは次の4点だけです。</p>
+  <ul>
+    <li>公式サイトか国内正規取扱店で買った正規品以外は、保証・返品・修理を一切しない</li>
+    <li>修理は<strong>購入店舗</strong>に相談する。工場で状態を見てから<strong>見積もり</strong>と預かり期間を連絡する（有償が前提に読める書き方）</li>
+    <li>プリント・コーティングの剥がれ、ウェルダー加工部、変色・退色などは修理できない</li>
+    <li>届いた商品の不良は<strong>到着後7日以内</strong>に連絡すれば交換か返金</li>
+  </ul>
+  <p>一方、本国の永久保証は「米国内外のすべての顧客」が対象で、条件は「aersf.comの注文番号」または「正規販売店の購入証明」です。日本の正規店のレシートがこの「正規販売店」に入るかは、どちらのサイトにも書かれていません。</p>
+</section>
+
+<section aria-labelledby="cmp">
+  <h2 id="cmp">本国と日本の比較</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">項目</th><th scope="col">本国 Aer（aersf.com）</th><th scope="col">日本（shop.aerjapan.jp / MSPC株式会社）</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">保証期間</th><td><span class="pill ok">明記</span>製品の寿命まで（Lifetime）</td><td><span class="pill no">記載なし</span>期間の定めは見当たらない</td></tr>
+        <tr><th scope="row">対象となる不具合</th><td><span class="pill ok">明記</span>ファスナーのレール破損、縫製・縫い目の不良、機能に影響する素材の欠陥など</td><td><span class="pill no">記載なし</span>修理「できないもの」の一覧だけがある</td></tr>
+        <tr><th scope="row">対象外</th><td>通常の摩耗、事故・誤用、他社修理・改造後の損傷、機能に影響しない見た目の問題、取り外せる部品（チェストストラップ・引き手）、非正規店・中古品</td><td>プリント・コーティング・リフレクターの剥がれ、ウェルダー加工品、変色・退色、改造、クリーニング、非正規ルート品（並行輸入・直輸入を含む）</td></tr>
+        <tr><th scope="row">費用</th><td><span class="pill ok">無償</span>修理または交換（Aerの判断）。米国で購入1年以内は返送料もAer負担、それ以降は倉庫までの送料が自己負担</td><td><span class="pill warn">不明</span>「お見積もり」を連絡するとだけ記載。無償になる条件の説明はない</td></tr>
+        <tr><th scope="row">受付窓口</th><td>support@aersf.com（英語）。氏名、注文番号か購入証明、製品名・型番・色、不具合の説明と写真を送る</td><td>購入店舗。公式通販の購入なら online@aerjapan.jp / 06-4708-3936</td></tr>
+        <tr><th scope="row">期間の目安</th><td>受け取りから返送まで3〜4週間</td><td>記載なし</td></tr>
+        <tr><th scope="row">譲渡・中古</th><td>最初の購入者（ギフトは受け取った人）のみ。譲渡不可</td><td>中古の扱いは記載なし（正規ルート以外は対応しない、とのみ）</td></tr>
+        <tr><th scope="row">初期不良</th><td>米国注文は30日以内返品可</td><td>到着後7日以内に連絡で交換または返金。返送料は店側負担</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="q">
+  <h2 id="q">公式サイトの文言</h2>
+  <div class="quotes">
+    <blockquote>弊社では、Aerオフィシャルサイト又は国内の正規取扱店にてご購入された正規品以外の製品について、保証・返品・交換・修理・真贋の判定等の対応は一切行っておりません。<cite>shop.aerjapan.jp / DEALER（正規取扱店一覧）</cite></blockquote>
+    <blockquote>「並行輸入」「直輸入」として販売されている商品は、当該商品を販売した輸入者、店舗等において保証や返品・交換・修理等の対応を行っていただくものであり、弊社が保証や対応を行っておりません。<cite>shop.aerjapan.jp / DEALER</cite></blockquote>
+    <blockquote>製品の修理をご希望の際は、ご購入店舗までご相談ください。工場で状態を確認後、お見積もりやお預かり期間等の詳細をご連絡いたします。<cite>shop.aerjapan.jp / ATTENTION「修理について」</cite></blockquote>
+    <blockquote>Our warranty is available to all customers, both in the United States and internationally, as long as they possess an order number from www.aersf.com or valid proof of purchase from one of our authorized retailers. … Aer warranties are not transferable.<cite>aersf.com / Lifetime Warranty</cite></blockquote>
+  </div>
+  <p class="note">読み取れること：日本側の文章は「保証」という言葉を、非正規品を<em>断る</em>文脈でしか使っていません。正規品に何を保証するかは書かれていません。日本公式ストアの販売業者は MSPC株式会社（master-piece の運営会社、大阪市中央区）です。</p>
+</section>
+
+<section aria-labelledby="c">
+  <h2 id="c">ブログ・動画・SNSの事例</h2>
+  <p>日本で正規品を買い、国内窓口で無償修理された（または断られた）ことを本文で確認できる体験談は、今回の調査では見つかりませんでした。見つかったものは次のとおりです。</p>
+  <div class="cases">
+    <article class="case">
+      <h3>本国サポートに相談して「神対応」だったという動画</h3>
+      <span class="meta">YouTube「【サポート神対応】使い込んだAer Travel Pack 2がまさかの結末に。」</span>
+      <p>説明文によると、ファスナーの劣化をきっかけに<strong>本国のサポート</strong>へ修理を相談した内容です。検索エンジンの要約では「ジッパー劣化と防水コーティング剥がれで問い合わせ、Travel Pack 3 の新品が届いた」とされていますが、動画本体は取得できず、結末と購入ルートは確認できていません。</p>
+      <p class="note">日本の購入者が本国窓口を使った例の可能性があります。気になる場合は動画で直接確認してください。</p>
+    </article>
+    <article class="case">
+      <h3>修理専門店の解説「保証期間中は無償のケースも多い」</h3>
+      <span class="meta">カバン修理スレッドアンドニードル（恵比寿）· 2026年10月更新</span>
+      <p>「保証期間中の修理は無償にて対応が可能なケースも多くなっています」と書かれています。ただしメーカーの窓口ではなく、保証期間が何年かの根拠は示されていません。ギャランティーカードや領収書がないと受け付けられない場合がある、とも書かれています。</p>
+      <p>参考価格（税込）：プラスチックバックル 4,400円〜、スライダーのみ 5,500円〜、ファスナー交換 15,400円〜、納期35日〜。</p>
+    </article>
+    <article class="case">
+      <h3>購入ガイド系ブログ「正規店で買えば修理の相談ができる」</h3>
+      <span class="meta">tottio.net（2026年2月）／ hachiko85.com（2024年7月）</span>
+      <p>「国内の正規輸入代理店や正規販売店で購入した製品に限り、修理の対応・相談が可能」「公式セールは…正規保証付き」といった記述があります。どちらも保証の期間や中身は書いておらず、公式の注意書きを言い換えたものです。tottio.net は、一部モデルのPUコーティングが日本の高温多湿で<strong>加水分解</strong>しやすいとも指摘しています（出典なし）。</p>
+    </article>
+    <article class="case">
+      <h3>一般の修理店で直した例</h3>
+      <span class="meta">千葉の靴修理職人 shu&amp;shoe（ブログ）</span>
+      <p>ショルダーベルト付け根の再縫製が 4,000円、ボディバッグのファスナーのコイル部分補修が2か所で 3,000円という例が載っています（検索結果の抜粋で確認。本文ページはアクセス拒否で開けず）。メーカーに出さず街の修理店で直す人もいることがわかります。</p>
+    </article>
+    <article class="case">
+      <h3>MSPC直営店がXで答えた修理の流れ</h3>
+      <span class="meta">@mspc_osakaflag（master-piece FLAGSHIP OSAKA）· 2017年</span>
+      <p>「修理代金は7000円ほど」「お店に送る → お店から修理に出す → 見積もりまで2週間弱 → 金額確認 → 修理（約2ヶ月）→ 完了」と回答しています。Aer製品の話かは確認できませんが、Aerの日本の公式説明（店舗経由・見積もり）と同じ流れです。</p>
+    </article>
+    <article class="case">
+      <h3>参考：MSPC自社ブランドの修理規定</h3>
+      <span class="meta">shop.mspc.jp/pages/repair</span>
+      <p>master-piece 製品については「保証期間内の修理は？ → 無償修理対応が可能です（条件あり）」と書かれ、レシートや注文確認メールの提示が求められます。ただしこのページにAerの名前はなく、Aerに同じ扱いがされるかはわかりません。</p>
+    </article>
+    <article class="case">
+      <h3>X（旧Twitter）</h3>
+      <span class="meta">検索エンジン経由で調査</span>
+      <p>「Aer 修理」「Aer 保証」で検索しましたが、Aerバッグの保証に触れた投稿は見つかりませんでした。Xは外部検索にほとんど載らないため、X内で直接「Aer 修理」「エアー リュック 保証」などで検索すると見つかる可能性があります。</p>
+    </article>
+  </div>
+</section>
+
+<section aria-labelledby="law">
+  <h2 id="law">メーカー保証がなくても使える権利</h2>
+  <p>メーカー保証とは別に、民法の<strong>契約不適合責任</strong>があります。買った時点から欠陥があった（縫製不良など）場合、販売店に修理・交換・代金減額などを求められます。欠陥を知ってから1年以内に販売店へ伝える必要があります（民法562条・566条）。通常の摩耗や加水分解のような経年劣化は、ふつうは対象になりません。</p>
+  <p class="note">これは一般的な法律の説明です。個別の判断が必要なら消費生活センター（188）に相談できます。</p>
+</section>
+
+<section aria-labelledby="todo">
+  <h2 id="todo">不具合が出たときの進め方</h2>
+  <ol class="steps">
+    <li><strong>購入証明を確保する。</strong>レシート、注文確認メール、購入履歴。どの窓口でも最初に求められます。</li>
+    <li><strong>まず購入店舗に相談する。</strong>日本公式の案内どおりの経路です。無償か有償かを見積もりの前に聞いておくと安心です。</li>
+    <li><strong>製造不良と思われ、国内の回答が有償なら、本国にも問い合わせる。</strong>support@aersf.com に、日本の正規店のレシート、製品名・色、不具合の写真を添えて英語で送ります。日本の正規店が対象になるかは明記されていないので、受け付けられるかは問い合わせの結果次第です。送料は自己負担になる見込みです。</li>
+    <li><strong>保証外なら修理店も比べる。</strong>純正部品は使えませんが、メーカー修理より早く安いことがあります。</li>
+  </ol>
+</section>
+
+<section aria-labelledby="ask">
+  <h2 id="ask">日本の窓口に保証の中身を聞く文面</h2>
+  <p>公式の回答をもらうのが一番確実です。そのまま使える問い合わせ文です。</p>
+  <div class="tpl" id="tpl">Aer製品の保証について教えてください。
+国内の正規取扱店で購入した製品について、
+1. メーカー保証の期間はありますか（購入日から何年か、または期間の定めなし）。
+2. 製造上の不良（縫製のほつれ、ファスナーの破損など）の修理は無償ですか。
+3. 本国（aersf.com）の Lifetime Warranty は、日本の正規取扱店で購入した製品にも適用されますか。
+4. 保証を受ける際に必要な書類（レシート、保証書など）を教えてください。</div>
+  <div class="copy-row">
+    <button type="button" id="copyBtn">文面をコピー</button>
+    <span class="contact">online@aerjapan.jp</span>
+    <span class="contact">06-4708-3936</span>
+  </div>
+</section>
+
+<section aria-labelledby="lim">
+  <h2 id="lim">調べきれなかったこと</h2>
+  <ul class="note" style="margin:0;padding-left:1.2em">
+    <li>YouTube動画の本編、shu&amp;shoe の記事本文、MSPC本体サイト（mspc.jp）は取得を拒否され、検索結果の抜粋でしか確認できていません。</li>
+    <li>Xの投稿は外部から検索できる範囲に限られます。</li>
+    <li>正規取扱店ごと（百貨店、セレクトショップなど）の独自保証は調べていません。</li>
+  </ul>
+</section>
+
+<section class="sources" aria-labelledby="src">
+  <h2 id="src">出典</h2>
+  <ol>
+    <li><a href="https://aersf.com/pages/warranty" target="_blank" rel="noopener">Aer Lifetime Warranty（aersf.com）</a></li>
+    <li><a href="https://aersf.com/pages/frequently-asked-questions" target="_blank" rel="noopener">Aer FAQ（aersf.com）</a></li>
+    <li><a href="https://shop.aerjapan.jp/pages/stockists" target="_blank" rel="noopener">Aer Japan DEALER（正規取扱店・保証に関する注意）</a></li>
+    <li><a href="https://shop.aerjapan.jp/pages/attention" target="_blank" rel="noopener">Aer Japan ATTENTION（修理について）</a></li>
+    <li><a href="https://shop.aerjapan.jp/policies/legal-notice" target="_blank" rel="noopener">Aer Japan 特定商取引法に基づく表記</a></li>
+    <li><a href="https://shop.aerjapan.jp/policies/refund-policy" target="_blank" rel="noopener">Aer Japan 返品ポリシー</a></li>
+    <li><a href="https://www.youtube.com/watch?v=9ZeCnMsctBc" target="_blank" rel="noopener">YouTube「【サポート神対応】使い込んだAer Travel Pack 2がまさかの結末に。」</a></li>
+    <li><a href="https://threadandneedle.net/aer/" target="_blank" rel="noopener">カバン修理スレッドアンドニードル「Aer修理」</a></li>
+    <li><a href="https://www.tottio.net/bags/aer/" target="_blank" rel="noopener">tottio.net「Aerリュックはどこの国？評判と加水分解」</a></li>
+    <li><a href="https://hachiko85.com/aer-fake-or-real/" target="_blank" rel="noopener">hachiko85.com「Aerのリュック偽物がある？」</a></li>
+    <li><a href="https://shushoe.seesaa.net/article/493605410.html" target="_blank" rel="noopener">shu&amp;shoe「Aer リュックのショルダーベルト付け根再縫製修理」</a></li>
+    <li><a href="https://shushoe.seesaa.net/article/503458780.html" target="_blank" rel="noopener">shu&amp;shoe「Aer ボディバッグのファスナー部分修理」</a></li>
+    <li><a href="https://x.com/mspc_osakaflag/status/887862194137841664" target="_blank" rel="noopener">master-piece FLAGSHIP OSAKA の投稿（X）</a></li>
+    <li><a href="https://shop.mspc.jp/pages/repair" target="_blank" rel="noopener">master-piece 修理について</a></li>
+    <li><a href="https://ojidoki.com/aer-backpack-durability/" target="_blank" rel="noopener">ojidoki「Aerのバックパックを5年使ってみた結果」</a></li>
+  </ol>
+</section>
+</main>
+
+<script>
+document.getElementById('copyBtn').addEventListener('click', function(){
+  var btn = this, text = document.getElementById('tpl').innerText;
+  function selectFallback(){
+    var r = document.createRange(); r.selectNodeContents(document.getElementById('tpl'));
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    btn.textContent = '選択しました。コピーしてください';
+  }
+  try{
+    navigator.clipboard.writeText(text).then(function(){ btn.textContent = 'コピーしました'; }, selectFallback);
+  }catch(e){ selectFallback(); }
+});
+</script>
